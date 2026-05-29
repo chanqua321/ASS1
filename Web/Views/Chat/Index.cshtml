@@ -1,20 +1,20 @@
 @model Web.ViewModels.ChatIndexViewModel
 @{
-    ViewData["Title"] = "Chat hỏi đáp tài liệu";
+    ViewData["Title"] = "Chat AI · Hỏi đáp tài liệu";
 }
 
 <partial name="_AiStatusBanner" model="Model.AiStatus" />
 
 <div class="page-header d-flex flex-wrap justify-content-between align-items-end gap-3">
     <div>
-        <h1>@ViewData["Title"]</h1>
-        <p class="page-subtitle">Hỏi bài, tóm tắt file hoặc trò chuyện với trợ lý học tập.</p>
+        <h1><i class="bi bi-chat-heart me-2" style="font-size:.9em;vertical-align:middle;background:linear-gradient(135deg,var(--c-indigo-light),var(--c-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></i>Chat AI</h1>
+        <p class="page-subtitle">Hỏi bài, tóm tắt file hoặc trò chuyện với trợ lý học tập thông minh.</p>
     </div>
-    <form asp-action="Create" method="post" class="page-header-actions d-flex gap-2 align-items-end">
+    <form asp-action="Create" method="post" class="page-header-actions d-flex gap-2 align-items-end flex-wrap">
         @Html.AntiForgeryToken()
         <div>
-            <label class="form-label small mb-1">Môn học</label>
-            <select name="subjectId" class="form-select form-select-sm" asp-items="Model.Subjects" style="min-width: 180px;">
+            <label class="form-label small mb-1"><i class="bi bi-book me-1"></i>Môn học</label>
+            <select name="subjectId" class="form-select form-select-sm" asp-items="Model.Subjects" style="min-width: 200px;">
                 <option value="">Tất cả tài liệu</option>
             </select>
         </div>
@@ -28,16 +28,16 @@
     <div class="col-lg-8">
         <div class="app-card session-list">
             <div class="app-card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-chat-left-text me-1"></i> Phiên chat</span>
-                <span class="badge bg-primary badge-count">@Model.Sessions.Count</span>
+                <span><i class="bi bi-chat-left-text me-2" style="color:var(--c-indigo-light)"></i>Lịch sử phiên chat</span>
+                <span class="badge badge-count">@Model.Sessions.Count</span>
             </div>
             <div class="list-group list-group-flush">
                 @if (!Model.Sessions.Any())
                 {
                     <div class="list-group-item empty-state border-0">
                         <div class="empty-state-icon"><i class="bi bi-chat-square-dots"></i></div>
-                        <p class="fw-semibold mb-1">Chưa có phiên chat</p>
-                        <p class="small mb-0">Bấm <strong>Phiên mới</strong> để bắt đầu trò chuyện.</p>
+                        <p class="fw-semibold mb-1">Chưa có phiên chat nào</p>
+                        <p class="small mb-0">Bấm <strong style="color:var(--c-indigo-light)">Phiên mới</strong> để bắt đầu trò chuyện với AI.</p>
                     </div>
                 }
                 else
@@ -45,9 +45,12 @@
                     @foreach (var s in Model.Sessions)
                     {
                         <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <a asp-action="Session" asp-route-id="@s.Id" class="session-link flex-grow-1">
-                                <div class="fw-semibold">@s.Title</div>
-                                <small class="text-muted session-meta">
+                            <a asp-action="Session" asp-route-id="@s.Id" class="session-link flex-grow-1 py-1">
+                                <div class="fw-semibold d-flex align-items-center gap-2">
+                                    <i class="bi bi-chat-dots" style="color:var(--c-indigo-light);font-size:.85em;"></i>
+                                    @s.Title
+                                </div>
+                                <small class="text-muted session-meta mt-1 d-block">
                                     <i class="bi bi-book"></i>@(s.SubjectName ?? "Mọi môn")
                                     <span>·</span>
                                     <i class="bi bi-chat"></i>@s.MessageCount tin
@@ -55,10 +58,10 @@
                                     @s.UpdatedAt.ToLocalTime().ToString("g")
                                 </small>
                             </a>
-                            <form asp-action="Delete" asp-route-id="@s.Id" method="post" class="ms-2"
-                                  onsubmit="return confirm('Xóa phiên chat này?');">
+                            <form asp-action="Delete" asp-route-id="@s.Id" method="post" class="ms-3"
+                                  onsubmit="return confirm('Xóa phiên chat này? Hành động không thể hoàn tác.');">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa phiên">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
@@ -68,19 +71,50 @@
             </div>
         </div>
     </div>
+
     <div class="col-lg-4">
-        <div class="app-card info-card">
+        <div class="app-card info-card mb-4">
             <div class="card-body">
-                <h6 class="card-title">
-                    <i class="bi bi-lightbulb me-1"></i> Gợi ý nhanh
+                <h6 class="card-title mb-3">
+                    <i class="bi bi-lightbulb me-1"></i> Gợi ý câu hỏi
                 </h6>
-                <ol class="small mb-0 ps-3 text-muted">
-                    <li class="mb-1">Hỏi nội dung bài trong file</li>
-                    <li class="mb-1">Nhờ tóm tắt một tài liệu</li>
-                    <li class="mb-1">Xem đang có file nào</li>
-                    <li class="mb-1">Chào hỏi: Hi, Bạn là ai?</li>
-                    <li>Lịch sử được lưu theo phiên</li>
-                </ol>
+                <div class="d-flex flex-column gap-2">
+                    @foreach (var tip in new[] {
+                        ("bi-question-circle", "Hỏi nội dung bài trong file"),
+                        ("bi-file-text", "Nhờ tóm tắt một tài liệu"),
+                        ("bi-folder2", "Xem đang có file nào"),
+                        ("bi-person-circle", "Chào hỏi: Hi, Bạn là ai?"),
+                        ("bi-clock-history", "Lịch sử được lưu theo phiên")
+                    })
+                    {
+                        <div class="d-flex align-items-start gap-2" style="font-size:.85rem;color:var(--text-2);">
+                            <i class="bi @tip.Item1 mt-1" style="color:var(--c-indigo-light);flex-shrink:0;"></i>
+                            <span>@tip.Item2</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="app-card" style="background:linear-gradient(135deg,rgba(6,182,212,.08) 0%,var(--surface-1) 100%);border-color:rgba(6,182,212,.2);">
+            <div class="card-body">
+                <h6 style="color:var(--c-cyan);font-weight:700;" class="mb-3">
+                    <i class="bi bi-cpu me-1"></i> Hệ thống
+                </h6>
+                <div class="d-flex flex-column gap-2" style="font-size:.82rem;color:var(--text-2);">
+                    <div class="d-flex justify-content-between">
+                        <span>Engine</span>
+                        <span style="color:var(--text);font-weight:600;">Ollama LLM</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Pipeline</span>
+                        <span style="color:var(--text);font-weight:600;">RAG · Vector DB</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Ngôn ngữ</span>
+                        <span style="color:var(--text);font-weight:600;">Tiếng Việt</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

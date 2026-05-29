@@ -6,35 +6,47 @@
 }
 
 <div class="page-header">
-    <h1>@ViewData["Title"]</h1>
-    <p class="page-subtitle">Tải bài PDF, Word hoặc slide — xử lý xong là có thể hỏi đáp ngay trên chat.</p>
+    <h1><i class="bi bi-cloud-upload me-2" style="font-size:.9em;vertical-align:middle;background:linear-gradient(135deg,var(--c-indigo-light),var(--c-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></i>Upload Tài Liệu</h1>
+    <p class="page-subtitle">Tải bài PDF, Word hoặc slide — xử lý xong là có thể hỏi đáp ngay trên Chat AI.</p>
 </div>
 
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="app-card">
+            <div class="app-card-header">
+                <i class="bi bi-file-earmark-arrow-up me-2" style="color:var(--c-indigo-light)"></i>
+                Thông tin tài liệu
+            </div>
             <div class="card-body">
                 <form asp-action="Upload" method="post" enctype="multipart/form-data">
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2"></div>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 mb-4"></div>
 
-                    <div class="mb-4 file-upload-zone">
+                    <div class="mb-4 file-upload-zone" id="dropZone">
                         <span class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></span>
-                        <label asp-for="File" class="form-label fw-semibold d-block mb-1">Chọn file bài học</label>
-                        <p class="small text-muted mb-2">PDF, Word (.docx) hoặc slide (.pptx, .ppt)</p>
-                        <input asp-for="File" class="form-control" type="file" accept=".pdf,.docx,.pptx,.ppt" />
+                        <label asp-for="File" class="form-label fw-semibold d-block mb-1" style="font-size:1.05rem;color:var(--text);">
+                            Kéo & thả file vào đây, hoặc click để chọn
+                        </label>
+                        <p class="small mb-3" style="color:var(--text-2);">PDF, Word (.docx) hoặc PowerPoint (.pptx, .ppt)</p>
+                        <input asp-for="File" class="form-control" type="file" accept=".pdf,.docx,.pptx,.ppt" id="fileInput" />
                         <span asp-validation-for="File" class="text-danger small d-block mt-2"></span>
+                        <div id="filePreview" class="mt-3 d-none">
+                            <span class="badge bg-primary py-2 px-3" style="font-size:.85rem;">
+                                <i class="bi bi-file-earmark-check me-2"></i>
+                                <span id="fileName"></span>
+                            </span>
+                        </div>
                     </div>
 
                     <fieldset class="app-fieldset mb-4">
-                        <legend>Môn học / Topic</legend>
+                        <legend><i class="bi bi-book me-1"></i> Môn học / Topic</legend>
 
-                        <div class="mb-3">
-                            <div class="form-check form-check-inline">
+                        <div class="mb-3 d-flex gap-4">
+                            <div class="form-check">
                                 <input class="form-check-input" type="radio" asp-for="SubjectInputMode" id="modeExisting"
                                        value="@DocumentUploadViewModel.ModeExisting" checked="@(!isNewSubject)" />
                                 <label class="form-check-label" for="modeExisting">Chọn môn có sẵn</label>
                             </div>
-                            <div class="form-check form-check-inline">
+                            <div class="form-check">
                                 <input class="form-check-input" type="radio" asp-for="SubjectInputMode" id="modeNew"
                                        value="@DocumentUploadViewModel.ModeNew" checked="@isNewSubject" />
                                 <label class="form-check-label" for="modeNew">Thêm môn / topic mới</label>
@@ -50,7 +62,7 @@
                         </div>
 
                         <div id="newSubjectBlock" class="@(isNewSubject ? "" : "d-none")">
-                            <div class="mb-2">
+                            <div class="mb-3">
                                 <label asp-for="NewSubjectName" class="form-label"></label>
                                 <input asp-for="NewSubjectName" class="form-control" placeholder="VD: Trí tuệ nhân tạo, Lập trình Web..." />
                                 <span asp-validation-for="NewSubjectName" class="text-danger small"></span>
@@ -58,13 +70,13 @@
                             <div>
                                 <label asp-for="NewSubjectCode" class="form-label"></label>
                                 <input asp-for="NewSubjectCode" class="form-control" placeholder="Để trống sẽ tự sinh mã" />
-                                <div class="form-text">Nếu trùng tên môn đã có, hệ thống dùng lại môn đó.</div>
+                                <div class="form-text"><i class="bi bi-info-circle me-1"></i>Nếu trùng tên môn đã có, hệ thống dùng lại môn đó.</div>
                             </div>
                         </div>
                     </fieldset>
 
                     <fieldset class="app-fieldset mb-4">
-                        <legend>Chương (tuỳ chọn)</legend>
+                        <legend><i class="bi bi-collection me-1"></i> Chương (tuỳ chọn)</legend>
 
                         <div class="mb-3" id="existingChapterBlock">
                             <label asp-for="ChapterId" class="form-label"></label>
@@ -81,18 +93,43 @@
                         <div>
                             <label asp-for="NewChapterTitle" class="form-label"></label>
                             <input asp-for="NewChapterTitle" class="form-control" placeholder="VD: Chương 3 - Xử lý ngôn ngữ tự nhiên" />
-                            <div class="form-text">Nhập tên chương mới thay vì chọn trong danh sách.</div>
+                            <div class="form-text"><i class="bi bi-info-circle me-1"></i>Nhập tên chương mới thay vì chọn trong danh sách.</div>
                             <span asp-validation-for="NewChapterTitle" class="text-danger small"></span>
                         </div>
                     </fieldset>
 
-                    <div class="d-flex flex-wrap gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-upload me-1"></i> Tải lên &amp; xử lý
+                    <div class="d-flex flex-wrap gap-3 pt-2">
+                        <button type="submit" class="btn btn-primary px-4" id="submitBtn">
+                            <i class="bi bi-upload me-2"></i> Tải lên &amp; xử lý
                         </button>
-                        <a asp-action="Index" class="btn btn-outline-secondary">Quay lại danh sách</a>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+                        </a>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mt-4 mt-lg-0">
+        <div class="app-card info-card">
+            <div class="card-body">
+                <h6 class="card-title mb-3">
+                    <i class="bi bi-info-circle me-1"></i> Hướng dẫn
+                </h6>
+                <ol class="small mb-0 ps-3" style="color:var(--text-2);">
+                    <li class="mb-2">Chọn file PDF, Word hoặc Slide từ máy tính</li>
+                    <li class="mb-2">Gán môn học hoặc tạo môn mới</li>
+                    <li class="mb-2">Chọn chương nếu có (tuỳ chọn)</li>
+                    <li class="mb-2">Nhấn <strong style="color:var(--c-indigo-light)">Tải lên & xử lý</strong></li>
+                    <li>Sau khi <strong style="color:#34d399">Indexed</strong>, vào Chat để hỏi đáp</li>
+                </ol>
+                <hr style="border-color:var(--border);margin:1rem 0;">
+                <div class="d-flex flex-column gap-2" style="font-size:.8rem;color:var(--text-3);">
+                    <span><i class="bi bi-check-circle text-success me-2"></i>PDF — văn bản đầy đủ</span>
+                    <span><i class="bi bi-check-circle text-success me-2"></i>Word .docx — hỗ trợ heading</span>
+                    <span><i class="bi bi-check-circle text-success me-2"></i>PowerPoint .pptx/.ppt</span>
+                </div>
             </div>
         </div>
     </div>
@@ -102,12 +139,45 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         const modeExisting = document.getElementById('modeExisting');
-        const modeNew = document.getElementById('modeNew');
+        const modeNew      = document.getElementById('modeNew');
         const existingBlock = document.getElementById('existingSubjectBlock');
-        const newBlock = document.getElementById('newSubjectBlock');
-        const chapterBlock = document.getElementById('existingChapterBlock');
+        const newBlock      = document.getElementById('newSubjectBlock');
+        const chapterBlock  = document.getElementById('existingChapterBlock');
         const subjectSelect = document.getElementById('subjectSelect');
         const chapterSelect = document.getElementById('chapterSelect');
+        const fileInput     = document.getElementById('fileInput');
+        const filePreview   = document.getElementById('filePreview');
+        const fileName      = document.getElementById('fileName');
+        const dropZone      = document.getElementById('dropZone');
+        const submitBtn     = document.getElementById('submitBtn');
+
+        // File preview
+        fileInput?.addEventListener('change', () => {
+            if (fileInput.files[0]) {
+                fileName.textContent = fileInput.files[0].name;
+                filePreview.classList.remove('d-none');
+                dropZone.style.borderColor = 'var(--c-emerald)';
+                dropZone.style.boxShadow   = '0 0 32px rgba(16,185,129,.15)';
+            }
+        });
+
+        // Drag & drop visual
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = 'var(--c-indigo)'; });
+        dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = ''; });
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.style.borderColor = '';
+            if (e.dataTransfer.files[0]) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // Submit loading state
+        document.querySelector('form').addEventListener('submit', () => {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Đang xử lý...';
+        });
 
         function toggleSubjectMode() {
             const isNew = modeNew.checked;
@@ -127,7 +197,6 @@
             const subjectId = this.value;
             chapterSelect.innerHTML = '<option value="">— Không chọn chương —</option>';
             if (!subjectId) return;
-
             const response = await fetch(`/Documents/ChaptersBySubject?subjectId=${subjectId}`);
             const chapters = await response.json();
             chapters.forEach(c => {
