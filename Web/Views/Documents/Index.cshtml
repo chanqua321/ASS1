@@ -1,0 +1,96 @@
+@model Web.ViewModels.DocumentListViewModel
+@using Model.Enums
+@{
+    ViewData["Title"] = "Danh sách tài liệu";
+}
+
+<div class="page-header d-flex flex-wrap justify-content-between align-items-end gap-3">
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        <p class="page-subtitle">Quản lý bài học đã tải lên và trạng thái xử lý.</p>
+    </div>
+    <div class="page-header-actions">
+        <a asp-action="Upload" class="btn btn-primary">
+            <i class="bi bi-cloud-upload me-1"></i> Upload tài liệu
+        </a>
+    </div>
+</div>
+
+<form method="get" class="filter-bar row g-3 align-items-end">
+    <div class="col-md-5">
+        <label class="form-label"><i class="bi bi-funnel me-1"></i> Lọc theo môn học</label>
+        <select name="subjectId" class="form-select" asp-for="FilterSubjectId" asp-items="Model.Subjects">
+            <option value="">— Tất cả môn —</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-outline-primary w-100">Áp dụng</button>
+    </div>
+</form>
+
+<div class="app-table-wrap">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Tên file</th>
+                    <th>Loại</th>
+                    <th>Môn học</th>
+                    <th>Chương</th>
+                    <th>Chunk</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày upload</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (!Model.Documents.Any())
+            {
+                <tr>
+                    <td colspan="8" class="p-0 border-0">
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
+                            <p class="fw-semibold mb-1">Chưa có tài liệu</p>
+                            <p class="small mb-3">Upload file đầu tiên để bắt đầu hỏi đáp trên chat.</p>
+                            <a asp-action="Upload" class="btn btn-primary btn-sm">
+                                <i class="bi bi-cloud-upload me-1"></i> Upload ngay
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var doc in Model.Documents)
+                {
+                    <tr>
+                        <td class="fw-medium">
+                            <i class="bi bi-file-earmark-text text-primary me-1"></i>
+                            @doc.FileName
+                        </td>
+                        <td><span class="badge bg-light text-dark border">@doc.FileType</span></td>
+                        <td>@doc.SubjectName</td>
+                        <td>@(doc.ChapterTitle ?? "—")</td>
+                        <td>@doc.ChunkCount</td>
+                        <td>
+                            <span class="badge bg-@(doc.Status switch {
+                                DocumentStatus.Indexed => "success",
+                                DocumentStatus.Processing => "warning",
+                                DocumentStatus.Failed => "danger",
+                                _ => "secondary"
+                            })">@doc.Status</span>
+                        </td>
+                        <td class="text-muted small">@doc.UploadedAt.ToLocalTime().ToString("g")</td>
+                        <td class="text-nowrap">
+                            <a asp-action="Details" asp-route-id="@doc.Id" class="btn btn-sm btn-link">Chi tiết</a>
+                            <a asp-action="Download" asp-route-id="@doc.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

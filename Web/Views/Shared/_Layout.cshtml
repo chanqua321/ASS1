@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Assigment1</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Web.styles.css" asp-append-version="true" />
+</head>
+<body class="app-body">
+    <header>
+        <nav class="navbar navbar-expand-lg app-navbar">
+            <div class="container app-container">
+                <a class="navbar-brand d-flex align-items-center gap-2" asp-controller="Documents" asp-action="Index">
+                    <span class="brand-icon"><i class="bi bi-mortarboard-fill"></i></span>
+                    <span class="brand-text">
+                        Assigment1
+                        <small class="brand-subtitle">Tài liệu &amp; chat học tập thông minh</small>
+                    </span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                        aria-controls="mainNav" aria-expanded="false" aria-label="Menu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Documents" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")"
+                               asp-controller="Documents" asp-action="Index">
+                                <i class="bi bi-folder2-open me-1"></i> Tài liệu
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Upload" ? "active" : "")"
+                               asp-controller="Documents" asp-action="Upload">
+                                <i class="bi bi-cloud-upload me-1"></i> Upload
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Chat" ? "active" : "")"
+                               asp-controller="Chat" asp-action="Index">
+                                <i class="bi bi-chat-heart me-1"></i> Chat
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="app-main">
+        <div class="container app-container">
+            @if (TempData["Success"] is string successMsg)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>@successMsg
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+                </div>
+            }
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <div class="container app-container d-flex justify-content-between flex-wrap gap-2 align-items-center">
+            <span><i class="bi bi-c-circle me-1"></i>@DateTime.Now.Year Assigment1 · PRN222</span>
+            <span class="opacity-75">Hỏi đáp theo tài liệu · Ollama</span>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

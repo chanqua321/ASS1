@@ -1,0 +1,87 @@
+@model Web.ViewModels.ChatIndexViewModel
+@{
+    ViewData["Title"] = "Chat hỏi đáp tài liệu";
+}
+
+<partial name="_AiStatusBanner" model="Model.AiStatus" />
+
+<div class="page-header d-flex flex-wrap justify-content-between align-items-end gap-3">
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        <p class="page-subtitle">Hỏi bài, tóm tắt file hoặc trò chuyện với trợ lý học tập.</p>
+    </div>
+    <form asp-action="Create" method="post" class="page-header-actions d-flex gap-2 align-items-end">
+        @Html.AntiForgeryToken()
+        <div>
+            <label class="form-label small mb-1">Môn học</label>
+            <select name="subjectId" class="form-select form-select-sm" asp-items="Model.Subjects" style="min-width: 180px;">
+                <option value="">Tất cả tài liệu</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Phiên mới
+        </button>
+    </form>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="app-card session-list">
+            <div class="app-card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-chat-left-text me-1"></i> Phiên chat</span>
+                <span class="badge bg-primary badge-count">@Model.Sessions.Count</span>
+            </div>
+            <div class="list-group list-group-flush">
+                @if (!Model.Sessions.Any())
+                {
+                    <div class="list-group-item empty-state border-0">
+                        <div class="empty-state-icon"><i class="bi bi-chat-square-dots"></i></div>
+                        <p class="fw-semibold mb-1">Chưa có phiên chat</p>
+                        <p class="small mb-0">Bấm <strong>Phiên mới</strong> để bắt đầu trò chuyện.</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var s in Model.Sessions)
+                    {
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a asp-action="Session" asp-route-id="@s.Id" class="session-link flex-grow-1">
+                                <div class="fw-semibold">@s.Title</div>
+                                <small class="text-muted session-meta">
+                                    <i class="bi bi-book"></i>@(s.SubjectName ?? "Mọi môn")
+                                    <span>·</span>
+                                    <i class="bi bi-chat"></i>@s.MessageCount tin
+                                    <span>·</span>
+                                    @s.UpdatedAt.ToLocalTime().ToString("g")
+                                </small>
+                            </a>
+                            <form asp-action="Delete" asp-route-id="@s.Id" method="post" class="ms-2"
+                                  onsubmit="return confirm('Xóa phiên chat này?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="app-card info-card">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="bi bi-lightbulb me-1"></i> Gợi ý nhanh
+                </h6>
+                <ol class="small mb-0 ps-3 text-muted">
+                    <li class="mb-1">Hỏi nội dung bài trong file</li>
+                    <li class="mb-1">Nhờ tóm tắt một tài liệu</li>
+                    <li class="mb-1">Xem đang có file nào</li>
+                    <li class="mb-1">Chào hỏi: Hi, Bạn là ai?</li>
+                    <li>Lịch sử được lưu theo phiên</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>

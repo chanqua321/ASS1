@@ -1,0 +1,301 @@
+@model Web.ViewModels.ChatSessionViewModel
+@using Model.Enums
+@{
+    ViewData["Title"] = Model.Session.Title;
+    var sessionId = Model.Session.Id;
+}
+
+<partial name="_AiStatusBanner" model="Model.AiStatus" />
+
+<div class="page-header">
+    <a asp-action="Index" class="back-link d-inline-block mb-2">
+        <i class="bi bi-arrow-left"></i> Danh sách phiên
+    </a>
+    <h1>@Model.Session.Title</h1>
+    <p class="page-subtitle">
+        <i class="bi bi-book me-1"></i>@(Model.Session.SubjectName ?? "Tất cả môn")
+    </p>
+</div>
+
+@if (Model.CanEnrollSubject && Model.EnrollSubjectId is int enrollId)
+{
+    <div class="app-card enroll-card mb-4">
+        <div class="card-body">
+            <h6 class="card-title text-success mb-2">
+                <i class="bi bi-person-plus me-1"></i> Đăng ký học môn này
+            </h6>
+            <p class="small text-muted mb-3">
+                Môn <strong>@Model.Session.SubjectName</strong> đã có bài học — bạn có thể đăng ký theo dõi môn này.
+            </p>
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small mb-0">Họ tên</label>
+                    <input type="text" class="form-control form-control-sm" id="enrollName" placeholder="Nguyễn Văn A" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small mb-0">Email</label>
+                    <input type="email" class="form-control form-control-sm" id="enrollEmail" placeholder="email@example.com" />
+                </div>
+                <div class="col-md-4">
+                    <button type="button" class="btn btn-success btn-sm w-100" id="enrollBtn">
+                        <i class="bi bi-check2 me-1"></i> Đăng ký
+                    </button>
+                </div>
+            </div>
+            <div id="enrollMessage" class="small mt-2 d-none"></div>
+        </div>
+    </div>
+}
+
+<div class="chat-panel mb-3">
+    <div class="chat-panel-header">
+        <span class="status-dot"></span>
+        <span>Trợ lý học tập · @Model.Session.Title</span>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+        @if (!Model.Messages.Any())
+        {
+            <div class="chat-empty-hint" id="chatEmptyHint">
+                <i class="bi bi-chat-square-text"></i>
+                <p class="mb-1 fw-semibold">Bắt đầu cuộc trò chuyện</p>
+                <p class="small mb-0">Chào hỏi, hỏi bài hoặc nhờ tóm tắt file — mình sẵn sàng hỗ trợ.</p>
+            </div>
+        }
+        @foreach (var msg in Model.Messages)
+        {
+            var isUser = msg.Role == ChatMessageRole.User;
+            <div class="chat-row @(isUser ? "chat-row-user" : "chat-row-assistant")">
+                @if (!isUser)
+                {
+                    <div class="chat-avatar chat-avatar-bot"><i class="bi bi-stars"></i></div>
+                }
+                <div class="chat-bubble @(isUser ? "chat-bubble-user" : "chat-bubble-assistant")">
+                    <div class="chat-bubble-label">@(isUser ? "Bạn" : "Trợ lý")</div>
+                    <div class="chat-bubble-body" style="white-space: pre-wrap;">@msg.Content</div>
+                    @if (!isUser && msg.DownloadableDocuments.Any())
+                    {
+                        <partial name="_DownloadLinks" model="msg.DownloadableDocuments" />
+                    }
+                    @if (!isUser && msg.Citations.Any())
+                    {
+                        <details class="mt-2">
+                            <summary class="small text-muted" style="cursor:pointer">
+                                <i class="bi bi-quote me-1"></i> Trích dẫn (@msg.Citations.Count)
+                            </summary>
+                            <div class="mt-2 pt-2 border-top">
+                                @foreach (var c in msg.Citations)
+                                {
+                                    <div class="small mb-2 text-muted">
+                                        <strong>@c.FileName</strong>
+                                        @if (!string.IsNullOrEmpty(c.ChapterTitle))
+                                        {
+                                            <span> — @c.ChapterTitle</span>
+                                        }
+                                        <span> (khớp @c.Score.ToString("P0"))</span>
+                                        <div class="fst-italic">"@c.Excerpt"</div>
+                                    </div>
+                                }
+                            </div>
+                        </details>
+                    }
+                    <div class="chat-bubble-time">@msg.CreatedAt.ToLocalTime().ToString("HH:mm")</div>
+                </div>
+                @if (isUser)
+                {
+                    <div class="chat-avatar chat-avatar-user"><i class="bi bi-person-fill"></i></div>
+                }
+            </div>
+        }
+    </div>
+    <div class="chat-typing" id="chatTyping">
+        <div class="chat-avatar chat-avatar-bot" style="width:28px;height:28px;font-size:0.85rem"><i class="bi bi-stars"></i></div>
+        <span>Đang soạn trả lời</span>
+        <span class="chat-typing-dots"><span></span><span></span><span></span></span>
+    </div>
+    <div class="chat-input-area">
+        <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="showCitations"
+                   @(Model.IncludeCitationsByDefault ? "checked" : "") />
+            <label class="form-check-label small text-muted" for="showCitations">
+                Hiện nguồn tham khảo khi trả lời
+            </label>
+        </div>
+        <form id="chatForm">
+            <input type="hidden" id="sessionId" value="@sessionId" />
+            <input type="hidden" id="subjectId" value="@(Model.Session.SubjectId?.ToString() ?? "")" />
+            <div class="chat-form-wrap">
+                <textarea id="questionInput" class="form-control" rows="2"
+                          placeholder="Nhập câu hỏi... (VD: Xin chào / Tóm tắt file ABC.docx)" required></textarea>
+                <button type="submit" class="btn btn-primary btn-send" id="sendBtn" title="Gửi">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </div>
+        </form>
+        <div id="chatError" class="text-danger small mt-2 d-none"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const chatForm = document.getElementById('chatForm');
+        const questionInput = document.getElementById('questionInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatError = document.getElementById('chatError');
+        const showCitations = document.getElementById('showCitations');
+        const enrollSubjectId = @(Model.EnrollSubjectId?.ToString() ?? "null");
+        const downloadUrlBase = '@Url.Content("~/Documents/Download/")';
+        const chatTyping = document.getElementById('chatTyping');
+        const chatEmptyHint = document.getElementById('chatEmptyHint');
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        function hideEmptyHint() {
+            if (chatEmptyHint) chatEmptyHint.remove();
+        }
+
+        function setTyping(visible) {
+            if (chatTyping) chatTyping.classList.toggle('visible', visible);
+            if (visible) chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function buildDownloadHtml(documents) {
+            if (!documents || documents.length === 0) return '';
+            let buttons = '';
+            documents.forEach(d => {
+                buttons += `<a href="${downloadUrlBase}${d.documentId}" class="btn btn-sm btn-outline-primary" download>
+                    <i class="bi bi-download me-1"></i>${escapeHtml(d.fileName)}</a>`;
+            });
+            return `<div class="download-links-box">
+                <div class="small fw-semibold mb-2"><i class="bi bi-file-earmark-arrow-down me-1"></i> Tài liệu liên quan</div>
+                <div class="d-flex flex-wrap gap-2">${buttons}</div>
+            </div>`;
+        }
+
+        function buildCitationsHtml(citations) {
+            if (!citations || citations.length === 0) return '';
+            let items = '';
+            citations.forEach(c => {
+                const chapter = c.chapterTitle ? ` — ${c.chapterTitle}` : '';
+                items += `<div class="small mb-2 text-muted">
+                    <strong>${escapeHtml(c.fileName)}</strong>${escapeHtml(chapter)}
+                    <span> (khớp ${Math.round(c.score * 100)}%)</span>
+                    <div class="fst-italic">"${escapeHtml(c.excerpt)}"</div>
+                </div>`;
+            });
+            return `<details class="mt-2">
+                <summary class="small text-muted" style="cursor:pointer">
+                    <i class="bi bi-quote me-1"></i> Trích dẫn (${citations.length})
+                </summary>
+                <div class="mt-2 pt-2 border-top">${items}</div>
+            </details>`;
+        }
+
+        function appendMessage(role, content, citations, downloads, createdAt) {
+            hideEmptyHint();
+            const isUser = role === 0;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'chat-row ' + (isUser ? 'chat-row-user' : 'chat-row-assistant');
+
+            const bubbleClass = isUser ? 'chat-bubble chat-bubble-user' : 'chat-bubble chat-bubble-assistant';
+            const label = isUser ? 'Bạn' : 'Trợ lý';
+            const downloadsHtml = !isUser ? buildDownloadHtml(downloads) : '';
+            const citationsHtml = !isUser ? buildCitationsHtml(citations) : '';
+            const avatarBot = !isUser
+                ? '<div class="chat-avatar chat-avatar-bot"><i class="bi bi-stars"></i></div>' : '';
+            const avatarUser = isUser
+                ? '<div class="chat-avatar chat-avatar-user"><i class="bi bi-person-fill"></i></div>' : '';
+
+            wrapper.innerHTML = `
+                ${avatarBot}
+                <div class="${bubbleClass}">
+                    <div class="chat-bubble-label">${label}</div>
+                    <div class="chat-bubble-body" style="white-space:pre-wrap">${escapeHtml(content)}</div>
+                    ${downloadsHtml}
+                    ${citationsHtml}
+                    <div class="chat-bubble-time">${new Date(createdAt).toLocaleTimeString()}</div>
+                </div>
+                ${avatarUser}`;
+            chatMessages.appendChild(wrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        const enrollBtn = document.getElementById('enrollBtn');
+        if (enrollBtn && enrollSubjectId) {
+            enrollBtn.addEventListener('click', async () => {
+                const msgEl = document.getElementById('enrollMessage');
+                const name = document.getElementById('enrollName').value.trim();
+                const email = document.getElementById('enrollEmail').value.trim();
+                try {
+                    const res = await fetch('@Url.Action("Enroll")', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ subjectId: enrollSubjectId, fullName: name, email })
+                    });
+                    const data = await res.json();
+                    msgEl.classList.remove('d-none', 'text-danger', 'text-success');
+                    if (!res.ok) {
+                        msgEl.classList.add('text-danger');
+                        msgEl.textContent = data.error || 'Đăng ký thất bại';
+                    } else {
+                        msgEl.classList.add('text-success');
+                        msgEl.textContent = data.message;
+                    }
+                } catch {
+                    msgEl.classList.remove('d-none');
+                    msgEl.classList.add('text-danger');
+                    msgEl.textContent = 'Lỗi kết nối';
+                }
+            });
+        }
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const question = questionInput.value.trim();
+            if (!question) return;
+
+            chatError.classList.add('d-none');
+            sendBtn.disabled = true;
+
+            const sessionId = document.getElementById('sessionId').value;
+            const subjectIdVal = document.getElementById('subjectId').value;
+            const payload = {
+                sessionId: sessionId || null,
+                question: question,
+                subjectId: subjectIdVal ? parseInt(subjectIdVal) : null,
+                includeCitations: showCitations.checked
+            };
+
+            appendMessage(0, question, [], [], new Date().toISOString());
+            questionInput.value = '';
+            setTyping(true);
+
+            try {
+                const res = await fetch('@Url.Action("Send")', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Gửi thất bại');
+                const assistant = data.assistantMessage;
+                const downloads = data.downloadableDocuments || assistant.downloadableDocuments || [];
+                const cites = showCitations.checked ? (assistant.citations || []) : [];
+                appendMessage(1, assistant.content, cites, downloads, assistant.createdAt);
+            } catch (err) {
+                chatError.textContent = err.message;
+                chatError.classList.remove('d-none');
+            } finally {
+                setTyping(false);
+                sendBtn.disabled = false;
+                questionInput.focus();
+            }
+        });
+    </script>
+}

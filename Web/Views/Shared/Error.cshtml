@@ -1,0 +1,28 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Lỗi";
+}
+
+<div class="page-header text-center">
+    <i class="bi bi-exclamation-octagon text-danger display-4"></i>
+    <h1 class="mt-3">Đã xảy ra lỗi</h1>
+    <p class="page-subtitle">Không thể xử lý yêu cầu của bạn.</p>
+</div>
+
+<div class="app-card col-lg-8 mx-auto">
+    <div class="card-body">
+        @if (Model.ShowRequestId)
+        {
+            <p class="mb-3">
+                <strong>Request ID:</strong> <code>@Model.RequestId</code>
+            </p>
+        }
+        <p class="text-muted small mb-0">
+            Bật môi trường <strong>Development</strong> để xem chi tiết lỗi khi debug cục bộ.
+        </p>
+    </div>
+</div>
+
+<a asp-controller="Documents" asp-action="Index" class="btn btn-primary mt-4 d-block mx-auto" style="width: fit-content;">
+    Về trang tài liệu
+</a>

@@ -1,0 +1,141 @@
+@model Web.ViewModels.DocumentUploadViewModel
+@using Web.ViewModels
+@{
+    ViewData["Title"] = "Upload tài liệu";
+    var isNewSubject = Model.SubjectInputMode == DocumentUploadViewModel.ModeNew;
+}
+
+<div class="page-header">
+    <h1>@ViewData["Title"]</h1>
+    <p class="page-subtitle">Tải bài PDF, Word hoặc slide — xử lý xong là có thể hỏi đáp ngay trên chat.</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="app-card">
+            <div class="card-body">
+                <form asp-action="Upload" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2"></div>
+
+                    <div class="mb-4 file-upload-zone">
+                        <span class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></span>
+                        <label asp-for="File" class="form-label fw-semibold d-block mb-1">Chọn file bài học</label>
+                        <p class="small text-muted mb-2">PDF, Word (.docx) hoặc slide (.pptx, .ppt)</p>
+                        <input asp-for="File" class="form-control" type="file" accept=".pdf,.docx,.pptx,.ppt" />
+                        <span asp-validation-for="File" class="text-danger small d-block mt-2"></span>
+                    </div>
+
+                    <fieldset class="app-fieldset mb-4">
+                        <legend>Môn học / Topic</legend>
+
+                        <div class="mb-3">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" asp-for="SubjectInputMode" id="modeExisting"
+                                       value="@DocumentUploadViewModel.ModeExisting" checked="@(!isNewSubject)" />
+                                <label class="form-check-label" for="modeExisting">Chọn môn có sẵn</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" asp-for="SubjectInputMode" id="modeNew"
+                                       value="@DocumentUploadViewModel.ModeNew" checked="@isNewSubject" />
+                                <label class="form-check-label" for="modeNew">Thêm môn / topic mới</label>
+                            </div>
+                        </div>
+
+                        <div id="existingSubjectBlock" class="@(isNewSubject ? "d-none" : "")">
+                            <label asp-for="SubjectId" class="form-label"></label>
+                            <select asp-for="SubjectId" asp-items="Model.Subjects" class="form-select" id="subjectSelect">
+                                <option value="">— Chọn môn học —</option>
+                            </select>
+                            <span asp-validation-for="SubjectId" class="text-danger small"></span>
+                        </div>
+
+                        <div id="newSubjectBlock" class="@(isNewSubject ? "" : "d-none")">
+                            <div class="mb-2">
+                                <label asp-for="NewSubjectName" class="form-label"></label>
+                                <input asp-for="NewSubjectName" class="form-control" placeholder="VD: Trí tuệ nhân tạo, Lập trình Web..." />
+                                <span asp-validation-for="NewSubjectName" class="text-danger small"></span>
+                            </div>
+                            <div>
+                                <label asp-for="NewSubjectCode" class="form-label"></label>
+                                <input asp-for="NewSubjectCode" class="form-control" placeholder="Để trống sẽ tự sinh mã" />
+                                <div class="form-text">Nếu trùng tên môn đã có, hệ thống dùng lại môn đó.</div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="app-fieldset mb-4">
+                        <legend>Chương (tuỳ chọn)</legend>
+
+                        <div class="mb-3" id="existingChapterBlock">
+                            <label asp-for="ChapterId" class="form-label"></label>
+                            <select asp-for="ChapterId" class="form-select" id="chapterSelect">
+                                <option value="">— Không chọn chương —</option>
+                                @foreach (var chapter in Model.Chapters)
+                                {
+                                    <option value="@chapter.Value" selected="@chapter.Selected">@chapter.Text</option>
+                                }
+                            </select>
+                            <span asp-validation-for="ChapterId" class="text-danger small"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="NewChapterTitle" class="form-label"></label>
+                            <input asp-for="NewChapterTitle" class="form-control" placeholder="VD: Chương 3 - Xử lý ngôn ngữ tự nhiên" />
+                            <div class="form-text">Nhập tên chương mới thay vì chọn trong danh sách.</div>
+                            <span asp-validation-for="NewChapterTitle" class="text-danger small"></span>
+                        </div>
+                    </fieldset>
+
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-1"></i> Tải lên &amp; xử lý
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Quay lại danh sách</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const modeExisting = document.getElementById('modeExisting');
+        const modeNew = document.getElementById('modeNew');
+        const existingBlock = document.getElementById('existingSubjectBlock');
+        const newBlock = document.getElementById('newSubjectBlock');
+        const chapterBlock = document.getElementById('existingChapterBlock');
+        const subjectSelect = document.getElementById('subjectSelect');
+        const chapterSelect = document.getElementById('chapterSelect');
+
+        function toggleSubjectMode() {
+            const isNew = modeNew.checked;
+            existingBlock.classList.toggle('d-none', isNew);
+            newBlock.classList.toggle('d-none', !isNew);
+            chapterBlock.classList.toggle('d-none', isNew);
+            if (isNew) {
+                subjectSelect.value = '';
+                chapterSelect.innerHTML = '<option value="">— Không chọn chương —</option>';
+            }
+        }
+
+        modeExisting?.addEventListener('change', toggleSubjectMode);
+        modeNew?.addEventListener('change', toggleSubjectMode);
+
+        subjectSelect?.addEventListener('change', async function () {
+            const subjectId = this.value;
+            chapterSelect.innerHTML = '<option value="">— Không chọn chương —</option>';
+            if (!subjectId) return;
+
+            const response = await fetch(`/Documents/ChaptersBySubject?subjectId=${subjectId}`);
+            const chapters = await response.json();
+            chapters.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.title;
+                chapterSelect.appendChild(opt);
+            });
+        });
+    </script>
+}

@@ -1,0 +1,25 @@
+@model Service.DTOs.AiStatusDto
+@{
+    var statusClass = Model.IsOnline ? "online" : Model.ConfiguredForAi ? "warning" : "offline";
+    var icon = Model.IsOnline ? "bi-check-circle-fill" : Model.ConfiguredForAi ? "bi-exclamation-triangle-fill" : "bi-cpu";
+    var title = Model.IsOnline
+        ? $"AI: {Model.Provider} ({Model.Model})"
+        : Model.ConfiguredForAi
+            ? $"AI: {Model.Provider} — chưa kết nối"
+            : "Chế độ local (không dùng model AI)";
+}
+<div class="ai-status-banner @statusClass" role="status">
+    <div class="d-flex align-items-start gap-2">
+        <i class="bi @icon fs-5"></i>
+        <div>
+            <strong>@title</strong>
+            <span class="d-block small mt-1 opacity-90">@Model.Message</span>
+            @if (Model.ConfiguredForAi && !Model.IsOnline)
+            {
+                <div class="small mt-2 mb-0">
+                    Mở app <strong>Ollama</strong> → chạy <code>ollama pull @Model.Model</code> → F5 trang này.
+                </div>
+            }
+        </div>
+    </div>
+</div>

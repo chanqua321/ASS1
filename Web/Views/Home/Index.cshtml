@@ -1,0 +1,36 @@
+﻿@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<div class="hero-card">
+    <div class="hero-card-inner">
+        <h1>Chào mừng đến Assigment1</h1>
+        <p class="hero-lead">
+            Tải bài học lên, hỏi đáp và tóm tắt ngay trên trình duyệt — trợ lý đọc hiểu tài liệu giúp bạn học nhanh hơn.
+        </p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <a asp-controller="Documents" asp-action="Index" class="hero-quick-link">
+            <div class="icon-wrap"><i class="bi bi-folder2-open"></i></div>
+            <h3>Tài liệu</h3>
+            <p>Xem danh sách, chi tiết và tải file bài học của bạn.</p>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a asp-controller="Documents" asp-action="Upload" class="hero-quick-link">
+            <div class="icon-wrap"><i class="bi bi-cloud-arrow-up"></i></div>
+            <h3>Upload</h3>
+            <p>Thêm PDF, Word hoặc slide theo môn và chương.</p>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a asp-controller="Chat" asp-action="Index" class="hero-quick-link">
+            <div class="icon-wrap"><i class="bi bi-chat-heart"></i></div>
+            <h3>Chat</h3>
+            <p>Hỏi bài, tóm tắt file và trò chuyện với trợ lý.</p>
+        </a>
+    </div>
+</div>
