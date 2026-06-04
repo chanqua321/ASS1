@@ -20,6 +20,10 @@ public class Document
     public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ProcessedAt { get; set; }
 
+    /// <summary>Tóm tắt AI (100–300 từ) sau khi index thành công.</summary>
+    public string? Summary { get; set; }
+    public DateTime? SummaryGeneratedAt { get; set; }
+
     public Subject Subject { get; set; } = null!;
     public Chapter? Chapter { get; set; }
     public ICollection<DocumentChunk> Chunks { get; set; } = new List<DocumentChunk>();

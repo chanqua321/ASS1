@@ -1,4 +1,4 @@
-@model Service.DTOs.AiStatusDto
+@model BusinessLogic.DTOs.AiStatusDto
 @{
     var statusClass = Model.IsOnline ? "online" : Model.ConfiguredForAi ? "warning" : "offline";
     var iconClass   = Model.IsOnline ? "bi-check-circle-fill" : Model.ConfiguredForAi ? "bi-exclamation-triangle-fill" : "bi-cpu";

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>EduAI — Luồng nghiệp vụ</title>
+<style>
+body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.5; margin: 2cm; color: #222; }
+h1 { font-size: 22pt; color: #1a4480; border-bottom: 2px solid #1a4480; padding-bottom: 8px; }
+h2 { font-size: 16pt; color: #1a4480; margin-top: 24px; }
+h3 { font-size: 13pt; color: #333; margin-top: 16px; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0 20px 0; }
+th, td { border: 1px solid #999; padding: 8px 10px; text-align: left; vertical-align: top; }
+th { background: #e8eef5; font-weight: bold; }
+ul, ol { margin: 8px 0 16px 0; }
+li { margin: 4px 0; }
+.note { background: #fff8e6; border-left: 4px solid #e6a800; padding: 10px 14px; margin: 12px 0; }
+code { background: #f4f4f4; padding: 1px 4px; font-family: Consolas, monospace; font-size: 10pt; }
+.flow { background: #f7f9fc; border: 1px solid #ccd; padding: 12px; font-family: Consolas, monospace; font-size: 10pt; white-space: pre-wrap; }
+.footer { margin-top: 40px; font-size: 9pt; color: #666; border-top: 1px solid #ccc; padding-top: 12px; }
+</style>
+</head>
+<body>
+
+<h1>EduAI (Assigment1)<br>Luồng nghiệp vụ và kiến trúc code</h1>
+
+<p><strong>Mục đích:</strong> Tài liệu giúp thành viên nhóm đọc hiểu cách hệ thống hoạt động — từ góc nhìn nghiệp vụ và map tới file code tương ứng.</p>
+<p><strong>Phiên bản:</strong> Theo codebase hiện tại — ASP.NET Core 8 MVC, SQL Server LocalDB, Chat RAG với Ollama (local).</p>
+
+<h2>1. Hệ thống là gì?</h2>
+<p><strong>EduAI</strong> là ứng dụng web quản lý tài liệu học tập kèm trợ lý AI hỏi–đáp theo <em>nội dung tài liệu đã upload</em> (kỹ thuật RAG — Retrieval-Augmented Generation).</p>
+<ul>
+<li><strong>WF1 — Quản lý tài liệu:</strong> Giáo viên upload PDF/DOCX/PPT → trích text → chia chunk → embedding → lập chỉ mục (Indexed).</li>
+<li><strong>WF2 — Chat RAG:</strong> Người dùng hỏi trong phiên chat → hệ thống tìm đoạn tài liệu liên quan → AI (Ollama) trả lời, có thể kèm trích dẫn nguồn.</li>
+<li><strong>Quản trị:</strong> Admin tạo môn/chương, gán giáo viên, xem dashboard và audit log.</li>
+<li><strong>Mở rộng:</strong> Tóm tắt AI tài liệu, sinh quiz trắc nghiệm, export quiz PDF.</li>
+</ul>
+
+<h2>2. Kiến trúc 3 lớp</h2>
+<p>Solution <code>Assigment1.sln</code> gồm 3 project. Luồng xử lý chuẩn:</p>
+<div class="flow">HTTP Request → Controller (Web) → I*Service (BusinessLogic) → I*Repository (Model) → SQL Server</div>
+<table>
+<tr><th>Project</th><th>Vai trò</th><th>Ví dụ file</th></tr>
+<tr><td>Web</td><td>Giao diện, Controller, ViewModel</td><td><code>Controllers/ChatController.cs</code>, <code>Views/Chat/*.cshtml</code></td></tr>
+<tr><td>BusinessLogic</td><td>Nghiệp vụ, DTO, cấu hình Options</td><td><code>Logic/ChatService.cs</code>, <code>Logic/DocumentService.cs</code></td></tr>
+<tr><td>Model</td><td>EF Core, Entity, Repository, Migration</td><td><code>Data/AppDbContext.cs</code>, <code>Entities/Document.cs</code></td></tr>
+</table>
+
+<h2>3. Vai trò người dùng (RBAC)</h2>
+<table>
+<tr><th>Role</th><th>Quyền chính</th></tr>
+<tr><td><strong>Admin</strong></td><td>Quản lý môn/chương, tạo Teacher, gán teacher cho môn, dashboard admin, xem audit log</td></tr>
+<tr><td><strong>Teacher</strong></td><td>Upload/Reindex tài liệu thuộc môn phụ trách, sinh quiz, dashboard teacher</td></tr>
+<tr><td><strong>Student</strong></td><td>Xem/tải tài liệu, đăng ký môn, chat RAG — <strong>không</strong> upload/reindex</td></tr>
+</table>
+<div class="note"><strong>Quy tắc:</strong> Mỗi môn học (Subject) chỉ có <strong>một</strong> Teacher (<code>TeacherUserId</code>). Admin là người gán.<br>
+<strong>Bảo mật:</strong> Cookie Authentication + claim Role. Backend chặn bằng <code>[Authorize]</code> và Policy <code>TeacherOnly</code> — ẩn nút trên UI không đủ.</div>
+
+<h2>4. Đăng nhập và đăng ký</h2>
+<table>
+<tr><th>Thao tác</th><th>URL</th><th>Ghi chú</th></tr>
+<tr><td>Đăng nhập</td><td><code>GET/POST /Account/Login</code></td><td>Cookie 8 giờ; claim: userId, email, Role</td></tr>
+<tr><td>Đăng ký Student</td><td><code>GET/POST /Account/Register</code></td><td>Chỉ tạo role Student</td></tr>
+<tr><td>Đăng xuất</td><td><code>POST /Account/Logout</code></td><td>Ghi audit</td></tr>
+<tr><td>Tài khoản Admin mặc định</td><td>(seed trong DB)</td><td><code>admin@gmail.com</code> / <code>123</code></td></tr>
+</table>
+<p>Teacher <strong>không</strong> tự đăng ký — Admin tạo qua <code>/AdminTeachers</code>.</p>
+
+<h2>5. WF1 — Quản lý và lập chỉ mục tài liệu</h2>
+<p><strong>Controller:</strong> <code>Web/Controllers/DocumentsController.cs</code><br>
+<strong>Service:</strong> <code>BusinessLogic/Logic/DocumentService.cs</code></p>
+
+<h3>5.1. Upload (Teacher)</h3>
+<ol>
+<li>Validate định dạng (pdf, docx, pptx) và chọn Subject + Chapter.</li>
+<li>Lưu file vật lý vào <code>App_Data/uploads/{guid}.ext</code>.</li>
+<li>Insert bản ghi Document (<code>Status = Pending</code>).</li>
+<li>Gọi <code>ProcessDocumentAsync</code> để index.</li>
+</ol>
+
+<h3>5.2. Pipeline index (<code>ProcessDocumentAsync</code>)</h3>
+<ol>
+<li>Đặt <code>Status → Processing</code> (UI hiển thị đang xử lý).</li>
+<li>Xóa chunk cũ (nếu reindex).</li>
+<li><code>DocumentTextExtractor</code> — trích text theo loại file.</li>
+<li><code>ChunkingService</code> — chia đoạn (~800 ký tự, overlap 100).</li>
+<li><code>MockEmbeddingService</code> — tạo vector (demo; production có thể thay OpenAI/Azure).</li>
+<li>Lưu <code>DocumentChunk</code> + <code>DocumentEmbedding</code> vào DB.</li>
+<li>Đặt <code>Status → Indexed</code> hoặc <code>Failed</code> (kèm ErrorMessage).</li>
+<li><code>DocumentSummaryService</code> — tóm tắt AI (bổ trợ; lỗi không làm fail quá trình index).</li>
+</ol>
+
+<table>
+<tr><th>Trạng thái Document</th><th>Ý nghĩa</th></tr>
+<tr><td>Pending</td><td>Vừa upload, chờ xử lý</td></tr>
+<tr><td>Processing</td><td>Đang trích text / chunk / embed</td></tr>
+<tr><td>Indexed</td><td>Sẵn sàng cho Chat RAG và Quiz</td></tr>
+<tr><td>Failed</td><td>Lỗi — xem ErrorMessage trên UI</td></tr>
+</table>
+
+<h3>5.3. Endpoint WF1</h3>
+<table>
+<tr><th>Thao tác</th><th>URL</th><th>Quyền</th></tr>
+<tr><td>Danh sách tài liệu</td><td><code>GET /Documents</code></td><td>Đã đăng nhập</td></tr>
+<tr><td>Chi tiết (preview, outline, summary, quiz)</td><td><code>GET /Documents/Details/{id}</code></td><td>Đã đăng nhập</td></tr>
+<tr><td>Tải file</td><td><code>GET /Documents/Download/{id}</code></td><td>Đã đăng nhập</td></tr>
+<tr><td>Upload</td><td><code>GET/POST /Documents/Upload</code></td><td>TeacherOnly</td></tr>
+<tr><td>Reindex</td><td><code>POST /Documents/Reindex/{id}</code></td><td>TeacherOnly</td></tr>
+<tr><td>Sinh quiz AI</td><td><code>POST /Documents/GenerateQuiz/{id}</code></td><td>TeacherOnly</td></tr>
+<tr><td>Export quiz PDF</td><td><code>GET /Documents/ExportQuiz/{quizId}?format=pdf</code></td><td>TeacherOnly</td></tr>
+</table>
+
+<h2>6. WF2 — Chat RAG (hỏi đáp theo tài liệu)</h2>
+<p><strong>Controller:</strong> <code>Web/Controllers/ChatController.cs</code><br>
+<strong>Service:</strong> <code>BusinessLogic/Logic/ChatService.cs</code></p>
+
+<h3>6.1. Điều kiện sử dụng</h3>
+<ul>
+<li>Tài liệu môn học phải ở trạng thái <strong>Indexed</strong>.</li>
+<li>Student đăng ký môn qua <code>POST /Chat/Enroll</code> (bảng SubjectEnrollments).</li>
+<li>Tạo phiên chat và chọn <code>SubjectId</code> để giới hạn phạm vi tìm kiếm.</li>
+<li>Bật Ollama local (<code>ollama serve</code>, model <code>llama3.2</code>) để có câu trả lời AI thật.</li>
+</ul>
+
+<h3>6.2. Luồng gửi tin nhắn (<code>POST /Chat/Send</code> — JSON)</h3>
+<ol>
+<li>Lưu hoặc tạo <code>ChatSession</code>.</li>
+<li>Nếu câu <strong>xã giao</strong> (chào, cảm ơn…) → trả lời template, <strong>không</strong> gọi AI.</li>
+<li>Lưu tin nhắn User vào DB.</li>
+<li>Lấy lịch sử chat gần nhất (<code>MaxHistoryMessages = 6</code>).</li>
+<li><code>RetrievalService</code>: embed câu hỏi → so cosine similarity với chunk → lấy top K (<code>TopK = 5</code>).</li>
+<li><code>RagAnswerGenerator</code>: POST tới Ollama <code>{BaseUrl}/chat/completions</code> hoặc fallback trích đoạn local nếu AI lỗi/tắt.</li>
+<li>Lưu tin nhắn Assistant + <code>MessageCitation</code> (file, chunk, score).</li>
+<li>Trả JSON <code>ChatSendResponse</code> cho giao diện.</li>
+</ol>
+<p>Câu hỏi <strong>tóm tắt</strong> dùng nhánh <code>RetrieveForSummaryAsync</code> (<code>SummaryTopK = 12</code>, lấy chunk đều theo tài liệu).</p>
+
+<h3>6.3. Endpoint Chat</h3>
+<table>
+<tr><th>Thao tác</th><th>URL</th><th>Quyền</th></tr>
+<tr><td>Danh sách phiên</td><td><code>GET /Chat</code></td><td>Đã đăng nhập</td></tr>
+<tr><td>Tạo phiên mới</td><td><code>POST /Chat/Create</code></td><td>Đã đăng nhập</td></tr>
+<tr><td>Vào phiên chat</td><td><code>GET /Chat/Session/{id}</code></td><td>Đã đăng nhập</td></tr>
+<tr><td>Gửi câu hỏi</td><td><code>POST /Chat/Send</code></td><td>Đã đăng nhập (JSON)</td></tr>
+<tr><td>Đăng ký môn</td><td><code>POST /Chat/Enroll</code></td><td>Đã đăng nhập (JSON)</td></tr>
+<tr><td>Xóa phiên</td><td><code>POST /Chat/Delete/{id}</code></td><td>Đã đăng nhập</td></tr>
+</table>
+
+<h2>7. Cấu hình AI (<code>Web/appsettings.json</code>)</h2>
+<p>Section <code>Chat:Ai</code> được map vào <code>AiModelOptions</code> trong <code>Program.cs</code>. Section <code>Chat:Rag</code> điều khiển retrieve, citation, quiz.</p>
+<table>
+<tr><th>Cấu hình</th><th>Mặc định</th><th>Ý nghĩa</th></tr>
+<tr><td><code>Chat:Ai:Provider</code></td><td>Ollama</td><td>Ollama = local; OpenAI = cloud (cần ApiKey)</td></tr>
+<tr><td><code>Chat:Ai:BaseUrl</code></td><td>http://localhost:11434/v1/</td><td>URL gọi <code>/chat/completions</code></td></tr>
+<tr><td><code>Chat:Ai:Model</code></td><td>llama3.2</td><td>Tên model Ollama</td></tr>
+<tr><td><code>Chat:Ai:Enabled</code></td><td>true</td><td>false → chỉ trả lời trích đoạn local</td></tr>
+<tr><td><code>Chat:Rag:TopK</code></td><td>5</td><td>Số chunk retrieve mỗi câu hỏi</td></tr>
+<tr><td><code>Chat:Rag:MinCitationScore</code></td><td>0.35</td><td>Ngưỡng hiển thị trích dẫn</td></tr>
+</table>
+<div class="note">
+<strong>Ollama (local):</strong> Không cần API key — app POST trực tiếp <code>localhost:11434/v1/chat/completions</code>.<br>
+<strong>OpenAI (cloud):</strong> Cần <code>ApiKey</code>, gửi header <code>Authorization: Bearer ...</code>.<br>
+<strong>Embedding:</strong> Hiện dùng <code>MockEmbeddingService</code> (hash SHA256, demo) — tách biệt với <code>Chat:Ai</code>.
+</div>
+<p><strong>File gọi AI:</strong> <code>BusinessLogic/Logic/RagAnswerGenerator.cs</code> (method <code>CallChatCompletionsAsync</code>).</p>
+
+<h2>8. Admin, Dashboard, Audit</h2>
+<table>
+<tr><th>Chức năng</th><th>URL</th><th>Role</th></tr>
+<tr><td>Quản lý môn</td><td><code>GET/POST /AdminSubjects</code></td><td>Admin</td></tr>
+<tr><td>Thêm chương</td><td><code>GET/POST /AdminSubjects/AddChapter</code></td><td>Admin</td></tr>
+<tr><td>Tạo Teacher</td><td><code>GET/POST /AdminTeachers</code></td><td>Admin</td></tr>
+<tr><td>Nhật ký audit</td><td><code>GET /AdminAudit</code></td><td>Admin</td></tr>
+<tr><td>Dashboard giáo viên</td><td><code>GET /Dashboard/Teacher</code></td><td>Teacher</td></tr>
+<tr><td>Dashboard admin</td><td><code>GET /Dashboard/Admin</code></td><td>Admin</td></tr>
+</table>
+
+<h2>9. Cơ sở dữ liệu — bảng chính</h2>
+<table>
+<tr><th>Bảng</th><th>Mục đích</th></tr>
+<tr><td>Subjects, Chapters</td><td>Môn học và chương</td></tr>
+<tr><td>Documents</td><td>Metadata file, trạng thái, tóm tắt AI</td></tr>
+<tr><td>DocumentChunks, DocumentEmbeddings</td><td>Nội dung chia đoạn và vector cho RAG</td></tr>
+<tr><td>ChatSessions, ChatMessages, MessageCitations</td><td>Phiên chat và trích dẫn nguồn</td></tr>
+<tr><td>SubjectEnrollments</td><td>Student đăng ký môn</td></tr>
+<tr><td>AppUsers, UserLoginHistories</td><td>Tài khoản và lịch sử đăng nhập</td></tr>
+<tr><td>AuditLogs</td><td>Nhật ký hành động (upload, chat, quiz…)</td></tr>
+<tr><td>DocumentQuizzes</td><td>Quiz sinh từ AI</td></tr>
+</table>
+
+<h2>10. Map file code quan trọng</h2>
+<table>
+<tr><th>Luồng / chức năng</th><th>File chính</th></tr>
+<tr><td>Khởi động, DI, migrate DB</td><td><code>Web/Program.cs</code></td></tr>
+<tr><td>Cấu hình DB, AI, RAG</td><td><code>Web/appsettings.json</code></td></tr>
+<tr><td>Upload và index tài liệu</td><td><code>BusinessLogic/Logic/DocumentService.cs</code></td></tr>
+<tr><td>Tìm chunk liên quan (RAG)</td><td><code>BusinessLogic/Logic/RetrievalService.cs</code></td></tr>
+<tr><td>Gọi LLM (Ollama/OpenAI)</td><td><code>BusinessLogic/Logic/RagAnswerGenerator.cs</code></td></tr>
+<tr><td>Logic chat nghiệp vụ</td><td><code>BusinessLogic/Logic/ChatService.cs</code></td></tr>
+<tr><td>Sinh quiz AI</td><td><code>BusinessLogic/Logic/QuizService.cs</code></td></tr>
+<tr><td>Phân quyền chi tiết</td><td><code>docs/Business-Roles.md</code></td></tr>
+<tr><td>Sơ đồ kiến trúc (draw.io)</td><td><code>docs/Assigment1-Simple-Architecture.drawio</code></td></tr>
+<tr><td>Tài liệu kỹ thuật đầy đủ</td><td><code>docs/PROJECT-DOCUMENTATION.md</code></td></tr>
+</table>
+
+<h2>11. Hướng dẫn demo nhanh</h2>
+<ol>
+<li>Chạy <code>dotnet run</code> trong thư mục <code>Web</code> (SQL LocalDB + migrate tự động).</li>
+<li>Chạy Ollama: <code>ollama pull llama3.2</code> và <code>ollama serve</code>.</li>
+<li>Đăng nhập <code>admin@gmail.com</code> / <code>123</code> → tạo môn, teacher, student.</li>
+<li>Teacher upload tài liệu → đợi trạng thái <strong>Indexed</strong>.</li>
+<li>Student đăng ký môn → vào Chat → hỏi theo nội dung tài liệu.</li>
+</ol>
+
+<h2>12. Sơ đồ luồng tóm tắt</h2>
+<div class="flow">[Teacher Upload]
+    → Lưu file disk + Document (Pending)
+    → ProcessDocumentAsync: Extract → Chunk → Embed → Indexed
+    → (Tùy chọn) Summary AI
+
+[User Chat Send]
+    → Casual? → Trả lời nhanh
+    → RAG: Embed câu hỏi → Retrieve top chunks
+    → RagAnswerGenerator → Ollama / fallback local
+    → Lưu Assistant + Citations → JSON response</div>
+
+<div class="footer">
+Tài liệu tạo cho dự án EduAI (Assigment1) — PRN222.<br>
+Mở file bằng Microsoft Word và lưu lại định dạng .docx nếu cần chỉnh sửa thêm.
+</div>
+
+</body>
+</html>

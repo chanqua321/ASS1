@@ -1,0 +1,42 @@
+@model Web.ViewModels.CreateSubjectChapterViewModel
+@{
+    ViewData["Title"] = "Admin · Thêm chương";
+}
+
+<div class="page-header">
+    <a asp-action="Index" class="back-link d-inline-flex align-items-center mb-3">
+        <i class="bi bi-arrow-left me-1"></i> Quản lý môn học
+    </a>
+    <h1><i class="bi bi-collection me-2"></i>Thêm chương</h1>
+    <p class="page-subtitle">Môn: <strong>@Model.SubjectCode</strong> — @Model.SubjectName</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <div class="app-card">
+            <div class="card-body">
+                <form asp-action="AddChapter" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="SubjectId" />
+                    <input type="hidden" asp-for="SubjectCode" />
+                    <input type="hidden" asp-for="SubjectName" />
+                    <div asp-validation-summary="All" class="alert alert-danger py-2 mb-3"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="Title" class="form-label"></label>
+                        <input asp-for="Title" class="form-control" placeholder="VD: Chương 1: Giới thiệu" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-save me-2"></i> Lưu chương
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

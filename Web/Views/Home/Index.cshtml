@@ -18,9 +18,12 @@
             trợ lý AI đọc hiểu tài liệu giúp bạn học nhanh và sâu hơn.
         </p>
         <div class="d-flex gap-3 mt-4 flex-wrap">
-            <a asp-controller="Documents" asp-action="Upload" class="btn btn-primary px-4">
-                <i class="bi bi-cloud-upload me-2"></i>Upload tài liệu
-            </a>
+            @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Teacher"))
+            {
+                <a asp-controller="Documents" asp-action="Upload" class="btn btn-primary px-4">
+                    <i class="bi bi-cloud-upload me-2"></i>Upload tài liệu
+                </a>
+            }
             <a asp-controller="Chat" asp-action="Index" class="btn btn-outline-secondary px-4" style="border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.85);">
                 <i class="bi bi-chat-heart me-2"></i>Vào Chat AI
             </a>
@@ -40,14 +43,17 @@
         </a>
     </div>
     <div class="col-md-4">
-        <a asp-controller="Documents" asp-action="Upload" class="hero-quick-link">
-            <div class="icon-wrap"><i class="bi bi-cloud-arrow-up"></i></div>
-            <h3>Upload Bài Học</h3>
-            <p>Thêm PDF, Word hoặc slide theo môn và chương — tự động chia chunk & lập chỉ mục.</p>
-            <div class="mt-3 d-flex align-items-center gap-1" style="font-size:.8rem;color:var(--c-indigo-light);font-weight:600;">
-                Upload ngay <i class="bi bi-arrow-right"></i>
-            </div>
-        </a>
+        @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Teacher"))
+        {
+            <a asp-controller="Documents" asp-action="Upload" class="hero-quick-link">
+                <div class="icon-wrap"><i class="bi bi-cloud-arrow-up"></i></div>
+                <h3>Upload Bài Học</h3>
+                <p>Thêm PDF, Word hoặc slide theo môn và chương — tự động chia chunk & lập chỉ mục.</p>
+                <div class="mt-3 d-flex align-items-center gap-1" style="font-size:.8rem;color:var(--c-indigo-light);font-weight:600;">
+                    Upload ngay <i class="bi bi-arrow-right"></i>
+                </div>
+            </a>
+        }
     </div>
     <div class="col-md-4">
         <a asp-controller="Chat" asp-action="Index" class="hero-quick-link">

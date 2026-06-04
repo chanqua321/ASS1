@@ -1,0 +1,152 @@
+@model BusinessLogic.DTOs.AdminDashboardDto
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Dashboard Admin";
+    var chatLabels = JsonSerializer.Serialize(Model.ChatByDay.Select(p => p.Label));
+    var chatValues = JsonSerializer.Serialize(Model.ChatByDay.Select(p => p.Value));
+    var uploadLabels = JsonSerializer.Serialize(Model.UploadsByMonth.Select(p => p.Label));
+    var uploadValues = JsonSerializer.Serialize(Model.UploadsByMonth.Select(p => p.Value));
+    var topLabels = JsonSerializer.Serialize(Model.TopSubjects.Select(s => $"{s.SubjectCode}"));
+    var topValues = JsonSerializer.Serialize(Model.TopSubjects.Select(s => s.SessionCount));
+}
+
+<div class="page-header">
+    <h1><i class="bi bi-graph-up me-2" style="color:var(--c-cyan)"></i>Dashboard Admin</h1>
+    <p class="page-subtitle">Tổng quan người dùng, tài liệu, chat và biểu đồ hoạt động hệ thống.</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl">
+        <div class="dash-stat-card">
+            <div class="dash-stat-value">@Model.TotalUsers</div>
+            <div class="dash-stat-label">Người dùng</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="dash-stat-card">
+            <div class="dash-stat-value">@Model.TeacherCount</div>
+            <div class="dash-stat-label">Teacher</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="dash-stat-card">
+            <div class="dash-stat-value">@Model.StudentCount</div>
+            <div class="dash-stat-label">Student</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="dash-stat-card">
+            <div class="dash-stat-value">@Model.SubjectCount</div>
+            <div class="dash-stat-label">Môn học</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="dash-stat-card">
+            <div class="dash-stat-value">@Model.DocumentCount</div>
+            <div class="dash-stat-label">Tài liệu</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="dash-stat-card">
+            <div class="dash-stat-value">@Model.ChatSessionCount</div>
+            <div class="dash-stat-label">Phiên chat</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="dash-stat-card">
+            <div class="dash-stat-value">@Model.QuestionCount</div>
+            <div class="dash-stat-label">Câu hỏi</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="app-card h-100">
+            <div class="app-card-header"><i class="bi bi-bar-chart me-2"></i>Lượt chat theo ngày (14 ngày)</div>
+            <div class="card-body">
+                <canvas id="chartChatByDay" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="app-card h-100">
+            <div class="app-card-header"><i class="bi bi-calendar3 me-2"></i>Tài liệu upload theo tháng (6 tháng)</div>
+            <div class="card-body">
+                <canvas id="chartUploadsByMonth" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="app-card">
+    <div class="app-card-header"><i class="bi bi-trophy me-2"></i>Môn học được truy cập nhiều nhất (theo phiên chat)</div>
+    <div class="card-body">
+        @if (!Model.TopSubjects.Any())
+        {
+            <p class="text-muted mb-0">Chưa có dữ liệu phiên chat theo môn.</p>
+        }
+        else
+        {
+            <canvas id="chartTopSubjects" height="160"></canvas>
+        }
+    </div>
+</div>
+
+<div class="mt-4 d-flex flex-wrap gap-2">
+    <a asp-controller="AdminTeachers" asp-action="Index" class="btn btn-outline-primary">
+        <i class="bi bi-person-workspace me-1"></i> Tạo giáo viên
+    </a>
+    <a asp-controller="Documents" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-folder2-open me-1"></i> Kho tài liệu
+    </a>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        const chartDefaults = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,.06)' } },
+                y: { beginAtZero: true, ticks: { color: '#94a3b8', precision: 0 }, grid: { color: 'rgba(255,255,255,.06)' } }
+            }
+        };
+        const barColor = 'rgba(99, 102, 241, 0.75)';
+        const lineColor = 'rgba(6, 182, 212, 0.9)';
+
+        new Chart(document.getElementById('chartChatByDay'), {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(chatLabels),
+                datasets: [{ data: @Html.Raw(chatValues), borderColor: lineColor, backgroundColor: 'rgba(6,182,212,.15)', fill: true, tension: 0.3 }]
+            },
+            options: chartDefaults
+        });
+
+        new Chart(document.getElementById('chartUploadsByMonth'), {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(uploadLabels),
+                datasets: [{ data: @Html.Raw(uploadValues), backgroundColor: barColor, borderRadius: 6 }]
+            },
+            options: chartDefaults
+        });
+
+        @if (Model.TopSubjects.Any())
+        {
+            <text>
+        new Chart(document.getElementById('chartTopSubjects'), {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(topLabels),
+                datasets: [{ data: @Html.Raw(topValues), backgroundColor: 'rgba(139, 92, 246, 0.75)', borderRadius: 6 }]
+            },
+            options: { ...chartDefaults, indexAxis: 'y' }
+        });
+            </text>
+        }
+    </script>
+}

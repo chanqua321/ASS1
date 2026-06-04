@@ -1,0 +1,104 @@
+@model Web.ViewModels.AdminSubjectsIndexViewModel
+@{
+    ViewData["Title"] = "Admin · Môn học";
+}
+
+<div class="page-header d-flex flex-wrap justify-content-between align-items-end gap-3">
+    <div>
+        <h1><i class="bi bi-book me-2"></i>Quản lý môn học</h1>
+        <p class="page-subtitle">Tạo môn và chương — gán giáo viên tại <a asp-controller="AdminTeachers" asp-action="Index">Tạo giáo viên</a>.</p>
+    </div>
+    <div class="page-header-actions d-flex flex-wrap gap-2">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Tạo môn mới
+        </a>
+        <a asp-controller="AdminTeachers" asp-action="Index" class="btn btn-outline-primary">
+            <i class="bi bi-person-workspace me-1"></i> Tạo giáo viên
+        </a>
+    </div>
+</div>
+
+<div class="app-card">
+    <div class="app-card-header">
+        <i class="bi bi-journal-text me-2" style="color:var(--c-emerald)"></i>Danh sách môn
+    </div>
+    <div class="card-body p-0 app-table-wrap" style="border:none;box-shadow:none;background:transparent;">
+        @if (!Model.Subjects.Any())
+        {
+            <div class="empty-state py-5">
+                <p class="text-muted mb-3">Chưa có môn nào. Bấm <strong>Tạo môn mới</strong> để bắt đầu.</p>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i> Tạo môn mới
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Tên môn</th>
+                            <th>Teacher</th>
+                            <th>Chương</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var s in Model.Subjects)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@s.Code</td>
+                            <td>
+                                <div>@s.Name</div>
+                                @if (!string.IsNullOrWhiteSpace(s.Description))
+                                {
+                                    <div class="small text-muted">@s.Description</div>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(s.TeacherEmail))
+                                {
+                                    <span class="badge bg-success">@s.TeacherEmail</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">Chưa có</span>
+                                }
+                            </td>
+                            <td>
+                                @if (s.Chapters.Any())
+                                {
+                                    <ul class="list-unstyled mb-0 small">
+                                        @foreach (var c in s.Chapters)
+                                        {
+                                            <li>@c.Title</li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">—</span>
+                                }
+                            </td>
+                            <td class="text-nowrap">
+                                <a asp-action="AddChapter" asp-route-subjectId="@s.Id" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-plus"></i> Chương
+                                </a>
+                                @if (string.IsNullOrEmpty(s.TeacherEmail))
+                                {
+                                    <a asp-controller="AdminTeachers" asp-action="Index" asp-route-subjectId="@s.Id"
+                                       class="btn btn-sm btn-outline-primary ms-1">
+                                        Gán GV
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

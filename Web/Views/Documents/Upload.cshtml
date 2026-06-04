@@ -18,6 +18,7 @@
                 Thông tin tài liệu
             </div>
             <div class="card-body">
+                @* UI: submit form "Tải lên & xử lý" → POST /Documents/Upload → DocumentsController.Upload (HttpPost) *@
                 <form asp-action="Upload" method="post" enctype="multipart/form-data">
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 mb-4"></div>
 
@@ -40,17 +41,16 @@
                     <fieldset class="app-fieldset mb-4">
                         <legend><i class="bi bi-book me-1"></i> Môn học / Topic</legend>
 
-                        <div class="mb-3 d-flex gap-4">
+                        <div class="mb-2">
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" asp-for="SubjectInputMode" id="modeExisting"
-                                       value="@DocumentUploadViewModel.ModeExisting" checked="@(!isNewSubject)" />
-                                <label class="form-check-label" for="modeExisting">Chọn môn có sẵn</label>
+                                       value="@DocumentUploadViewModel.ModeExisting" checked />
+                                <label class="form-check-label" for="modeExisting">Chọn môn được phân công</label>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" asp-for="SubjectInputMode" id="modeNew"
-                                       value="@DocumentUploadViewModel.ModeNew" checked="@isNewSubject" />
-                                <label class="form-check-label" for="modeNew">Thêm môn / topic mới</label>
-                            </div>
+                        </div>
+                        <div class="form-text mb-3">
+                            <i class="bi bi-shield-check me-1"></i>
+                            Teacher chỉ upload được cho môn mà Admin đã gán.
                         </div>
 
                         <div id="existingSubjectBlock" class="@(isNewSubject ? "d-none" : "")">
@@ -61,22 +61,15 @@
                             <span asp-validation-for="SubjectId" class="text-danger small"></span>
                         </div>
 
-                        <div id="newSubjectBlock" class="@(isNewSubject ? "" : "d-none")">
-                            <div class="mb-3">
-                                <label asp-for="NewSubjectName" class="form-label"></label>
-                                <input asp-for="NewSubjectName" class="form-control" placeholder="VD: Trí tuệ nhân tạo, Lập trình Web..." />
-                                <span asp-validation-for="NewSubjectName" class="text-danger small"></span>
-                            </div>
-                            <div>
-                                <label asp-for="NewSubjectCode" class="form-label"></label>
-                                <input asp-for="NewSubjectCode" class="form-control" placeholder="Để trống sẽ tự sinh mã" />
-                                <div class="form-text"><i class="bi bi-info-circle me-1"></i>Nếu trùng tên môn đã có, hệ thống dùng lại môn đó.</div>
-                            </div>
-                        </div>
+                        @* Teacher không tạo môn mới tại đây *@
                     </fieldset>
 
                     <fieldset class="app-fieldset mb-4">
-                        <legend><i class="bi bi-collection me-1"></i> Chương (tuỳ chọn)</legend>
+                        <legend><i class="bi bi-collection me-1"></i> Chương</legend>
+                        <p class="form-text mb-3">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Mỗi chương chỉ được <strong>một</strong> tài liệu. Nếu cần cập nhật, dùng <strong>Index lại</strong> trên file hiện có.
+                        </p>
 
                         <div class="mb-3" id="existingChapterBlock">
                             <label asp-for="ChapterId" class="form-label"></label>
@@ -139,9 +132,7 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         const modeExisting = document.getElementById('modeExisting');
-        const modeNew      = document.getElementById('modeNew');
         const existingBlock = document.getElementById('existingSubjectBlock');
-        const newBlock      = document.getElementById('newSubjectBlock');
         const chapterBlock  = document.getElementById('existingChapterBlock');
         const subjectSelect = document.getElementById('subjectSelect');
         const chapterSelect = document.getElementById('chapterSelect');
@@ -180,23 +171,19 @@
         });
 
         function toggleSubjectMode() {
-            const isNew = modeNew.checked;
-            existingBlock.classList.toggle('d-none', isNew);
-            newBlock.classList.toggle('d-none', !isNew);
-            chapterBlock.classList.toggle('d-none', isNew);
-            if (isNew) {
-                subjectSelect.value = '';
-                chapterSelect.innerHTML = '<option value="">— Không chọn chương —</option>';
-            }
+            // Teacher: chỉ modeExisting
+            existingBlock.classList.remove('d-none');
+            chapterBlock.classList.remove('d-none');
         }
 
         modeExisting?.addEventListener('change', toggleSubjectMode);
-        modeNew?.addEventListener('change', toggleSubjectMode);
+        toggleSubjectMode();
 
         subjectSelect?.addEventListener('change', async function () {
             const subjectId = this.value;
             chapterSelect.innerHTML = '<option value="">— Không chọn chương —</option>';
             if (!subjectId) return;
+            // UI: đổi môn học → gọi Controller lấy danh sách chapters (GET /Documents/ChaptersBySubject?subjectId=...)
             const response = await fetch(`/Documents/ChaptersBySubject?subjectId=${subjectId}`);
             const chapters = await response.json();
             chapters.forEach(c => {

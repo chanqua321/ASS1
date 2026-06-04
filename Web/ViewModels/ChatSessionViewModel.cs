@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Service.DTOs;
+using BusinessLogic.DTOs;
 
 namespace Web.ViewModels;
 

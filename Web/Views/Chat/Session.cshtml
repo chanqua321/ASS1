@@ -1,5 +1,4 @@
 @model Web.ViewModels.ChatSessionViewModel
-@using Model.Enums
 @{
     ViewData["Title"] = Model.Session.Title;
     var sessionId = Model.Session.Id;
@@ -63,20 +62,19 @@
         }
         @foreach (var msg in Model.Messages)
         {
-            var isUser = msg.Role == ChatMessageRole.User;
-            <div class="chat-row @(isUser ? "chat-row-user" : "chat-row-assistant")">
-                @if (!isUser)
+            <div class="chat-row @(msg.IsUser ? "chat-row-user" : "chat-row-assistant")">
+                @if (!msg.IsUser)
                 {
                     <div class="chat-avatar chat-avatar-bot"><i class="bi bi-stars"></i></div>
                 }
-                <div class="chat-bubble @(isUser ? "chat-bubble-user" : "chat-bubble-assistant")">
-                    <div class="chat-bubble-label">@(isUser ? "Bạn" : "Trợ lý")</div>
+                <div class="chat-bubble @(msg.IsUser ? "chat-bubble-user" : "chat-bubble-assistant")">
+                    <div class="chat-bubble-label">@(msg.IsUser ? "Bạn" : "Trợ lý")</div>
                     <div class="chat-bubble-body" style="white-space: pre-wrap;">@msg.Content</div>
-                    @if (!isUser && msg.DownloadableDocuments.Any())
+                    @if (!msg.IsUser && msg.DownloadableDocuments.Any())
                     {
                         <partial name="_DownloadLinks" model="msg.DownloadableDocuments" />
                     }
-                    @if (!isUser && msg.Citations.Any())
+                    @if (!msg.IsUser && msg.Citations.Any())
                     {
                         <details class="mt-2">
                             <summary class="small text-muted" style="cursor:pointer">
@@ -100,7 +98,7 @@
                     }
                     <div class="chat-bubble-time">@msg.CreatedAt.ToLocalTime().ToString("HH:mm")</div>
                 </div>
-                @if (isUser)
+                @if (msg.IsUser)
                 {
                     <div class="chat-avatar chat-avatar-user"><i class="bi bi-person-fill"></i></div>
                 }
@@ -233,6 +231,7 @@
                 const name = document.getElementById('enrollName').value.trim();
                 const email = document.getElementById('enrollEmail').value.trim();
                 try {
+                    // UI: bấm nút "Đăng ký" → POST /Chat/Enroll (JSON) → ChatController.Enroll
                     const res = await fetch('@Url.Action("Enroll")', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -277,6 +276,7 @@
             setTyping(true);
 
             try {
+                // UI: bấm "Gửi" (submit form) → POST /Chat/Send (JSON) → ChatController.Send
                 const res = await fetch('@Url.Action("Send")', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

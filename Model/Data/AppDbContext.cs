@@ -18,6 +18,10 @@ public class AppDbContext : DbContext
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<MessageCitation> MessageCitations => Set<MessageCitation>();
     public DbSet<SubjectEnrollment> SubjectEnrollments => Set<SubjectEnrollment>();
+    public DbSet<AppUser> AppUsers => Set<AppUser>();
+    public DbSet<UserLoginHistory> UserLoginHistories => Set<UserLoginHistory>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<DocumentQuiz> DocumentQuizzes => Set<DocumentQuiz>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,6 +31,10 @@ public class AppDbContext : DbContext
             e.Property(x => x.Code).HasMaxLength(20).IsRequired();
             e.Property(x => x.Name).HasMaxLength(200).IsRequired();
             e.HasIndex(x => x.Code).IsUnique();
+            e.HasOne(x => x.TeacherUser)
+                .WithMany()
+                .HasForeignKey(x => x.TeacherUserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Chapter>(e =>
@@ -45,6 +53,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.FileName).HasMaxLength(500).IsRequired();
             e.Property(x => x.StoredFileName).HasMaxLength(500).IsRequired();
             e.Property(x => x.FilePath).HasMaxLength(1000).IsRequired();
+            e.Property(x => x.Summary).HasMaxLength(4000);
             e.HasOne(x => x.Subject)
                 .WithMany(s => s.Documents)
                 .HasForeignKey(x => x.SubjectId)
@@ -121,20 +130,52 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        SeedSubjects(modelBuilder);
-    }
+        modelBuilder.Entity<AppUser>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Email).HasMaxLength(200).IsRequired();
+            e.HasIndex(x => x.Email).IsUnique();
+            e.Property(x => x.PasswordHash).HasMaxLength(500).IsRequired();
+            e.Property(x => x.Role).HasMaxLength(20).IsRequired();
+        });
 
-    private static void SeedSubjects(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Subject>().HasData(
-            new Subject { Id = 1, Code = "PRN222", Name = "Building Cross-Platform Back-End", Description = "ASP.NET Core" },
-            new Subject { Id = 2, Code = "SWP391", Name = "Software Project", Description = "Capstone" }
-        );
+        modelBuilder.Entity<UserLoginHistory>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.LoggedInAt).IsRequired();
+            e.Property(x => x.IpAddress).HasMaxLength(64);
+            e.Property(x => x.UserAgent).HasMaxLength(500);
+            e.HasIndex(x => new { x.UserId, x.LoggedInAt });
+            e.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
-        modelBuilder.Entity<Chapter>().HasData(
-            new Chapter { Id = 1, SubjectId = 1, Title = "Chương 1: Giới thiệu", OrderNumber = 1 },
-            new Chapter { Id = 2, SubjectId = 1, Title = "Chương 2: MVC & EF Core", OrderNumber = 2 },
-            new Chapter { Id = 3, SubjectId = 2, Title = "Chương 1: Khởi động dự án", OrderNumber = 1 }
-        );
+        modelBuilder.Entity<AuditLog>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Username).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Action).HasMaxLength(80).IsRequired();
+            e.Property(x => x.IpAddress).HasMaxLength(64);
+            e.Property(x => x.Detail).HasMaxLength(1000);
+            e.HasIndex(x => x.CreatedAt);
+            e.HasIndex(x => new { x.UserId, x.CreatedAt });
+        });
+
+        modelBuilder.Entity<DocumentQuiz>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.QuestionsJson).IsRequired();
+            e.HasIndex(x => new { x.DocumentId, x.CreatedAt });
+            e.HasOne(x => x.Document)
+                .WithMany()
+                .HasForeignKey(x => x.DocumentId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
     }
 }

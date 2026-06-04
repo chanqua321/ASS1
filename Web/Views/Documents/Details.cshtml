@@ -1,13 +1,7 @@
-@model Service.DTOs.DocumentListItemDto
-@using Model.Enums
+@model Web.ViewModels.DocumentDetailsPageViewModel
 @{
+    var doc = Model.Document;
     ViewData["Title"] = "Chi tiết tài liệu";
-    var (bgClass, statusIcon) = Model.Status switch {
-        DocumentStatus.Indexed    => ("bg-success", "bi-check-circle-fill"),
-        DocumentStatus.Processing => ("bg-warning",  "bi-hourglass-split"),
-        DocumentStatus.Failed     => ("bg-danger",   "bi-x-circle-fill"),
-        _                         => ("bg-secondary","bi-clock")
-    };
 }
 
 <div class="page-header">
@@ -16,11 +10,11 @@
     </a>
     <h1 class="d-flex align-items-center gap-2">
         <i class="bi bi-file-earmark-text" style="font-size:.85em;background:linear-gradient(135deg,var(--c-indigo-light),var(--c-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></i>
-        @Model.FileName
+        @doc.FileName
     </h1>
     <p class="page-subtitle">
-        <span class="badge @bgClass me-2"><i class="bi @statusIcon me-1"></i>@Model.Status</span>
-        @Model.SubjectName · @Model.FileType
+        <span class="badge @doc.StatusBadgeClass me-2"><i class="bi @doc.StatusIcon me-1"></i>@doc.StatusLabel</span>
+        @doc.SubjectDisplay · @doc.FileTypeLabel
     </p>
 </div>
 
@@ -34,53 +28,184 @@
                 <dl class="row detail-list mb-0">
                     <dt class="col-sm-4">Tên file</dt>
                     <dd class="col-sm-8">
-                        <code style="font-family:'JetBrains Mono',monospace;font-size:.88em;background:var(--surface-2);padding:.2em .5em;border-radius:6px;">@Model.FileName</code>
+                        <code style="font-family:'JetBrains Mono',monospace;font-size:.88em;background:var(--surface-2);padding:.2em .5em;border-radius:6px;">@doc.FileName</code>
                     </dd>
 
                     <dt class="col-sm-4">Loại</dt>
-                    <dd class="col-sm-8"><span class="badge bg-light">@Model.FileType</span></dd>
+                    <dd class="col-sm-8"><span class="badge bg-light">@doc.FileTypeLabel</span></dd>
 
                     <dt class="col-sm-4">Môn học</dt>
-                    <dd class="col-sm-8" style="color:var(--c-indigo-light)">@Model.SubjectName</dd>
+                    <dd class="col-sm-8" style="color:var(--c-indigo-light)">@doc.SubjectDisplay</dd>
 
                     <dt class="col-sm-4">Chương</dt>
-                    <dd class="col-sm-8">@(Model.ChapterTitle ?? "—")</dd>
+                    <dd class="col-sm-8">@(doc.ChapterTitle ?? "—")</dd>
 
                     <dt class="col-sm-4">Số chunk</dt>
                     <dd class="col-sm-8">
-                        <span class="badge bg-primary" style="font-size:.85rem;">@Model.ChunkCount chunks</span>
+                        <span class="badge bg-primary" style="font-size:.85rem;">@doc.ChunkCount chunks</span>
                     </dd>
 
                     <dt class="col-sm-4">Trạng thái</dt>
                     <dd class="col-sm-8">
-                        <span class="badge @bgClass"><i class="bi @statusIcon me-1"></i>@Model.Status</span>
+                        <span class="badge @doc.StatusBadgeClass"><i class="bi @doc.StatusIcon me-1"></i>@doc.StatusLabel</span>
                     </dd>
 
                     <dt class="col-sm-4">Upload lúc</dt>
-                    <dd class="col-sm-8" style="color:var(--text-2);font-size:.9rem;">@Model.UploadedAt.ToLocalTime().ToString("g")</dd>
+                    <dd class="col-sm-8" style="color:var(--text-2);font-size:.9rem;">@doc.UploadedAt.ToLocalTime().ToString("g")</dd>
 
                     <dt class="col-sm-4">Xử lý xong</dt>
-                    <dd class="col-sm-8 mb-0" style="color:var(--text-2);font-size:.9rem;">@(Model.ProcessedAt?.ToLocalTime().ToString("g") ?? "—")</dd>
+                    <dd class="col-sm-8 mb-0" style="color:var(--text-2);font-size:.9rem;">@(doc.ProcessedAt?.ToLocalTime().ToString("g") ?? "—")</dd>
                 </dl>
             </div>
         </div>
+
+        @if (Model.CanManageQuiz)
+        {
+            <div class="app-card mt-4" style="border-color:rgba(139,92,246,.35);">
+                <div class="app-card-header">
+                    <i class="bi bi-patch-question me-2" style="color:var(--c-violet)"></i>AI Quiz Generator
+                </div>
+                <div class="card-body">
+                    <form asp-action="GenerateQuiz" asp-route-id="@doc.Id" method="post"
+                          class="d-flex flex-wrap align-items-end gap-2 mb-3">
+                        @Html.AntiForgeryToken()
+                        <div>
+                            <label for="questionCount" class="form-label small mb-1">Số câu hỏi</label>
+                            <select name="questionCount" id="questionCount" class="form-select form-select-sm" style="min-width:5.5rem;">
+                                @for (var n = Model.QuizMinQuestionCount; n <= Model.QuizMaxQuestionCount; n++)
+                                {
+                                    if (n == Model.QuizDefaultQuestionCount)
+                                    {
+                                        <option value="@n" selected>@n câu</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@n">@n câu</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-magic me-1"></i> @(Model.LatestQuiz is null ? "Generate Quiz" : "Sinh lại Quiz")
+                        </button>
+                    </form>
+                    <p class="text-muted small mb-3">
+                        Chọn từ @Model.QuizMinQuestionCount–@Model.QuizMaxQuestionCount câu; mỗi câu 4 đáp án A–D.
+                    </p>
+                    @if (Model.LatestQuiz is null)
+                    {
+                        <p class="text-muted mb-0 small">
+                            Chưa có quiz. Chọn số câu rồi nhấn <strong>Generate Quiz</strong>.
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="small text-muted mb-3">
+                            <i class="bi bi-clock me-1"></i>
+                            Lần gần nhất: @Model.LatestQuiz.CreatedAt.ToLocalTime().ToString("g")
+                            · @Model.LatestQuiz.Questions.Count câu
+                        </p>
+                        <div class="d-flex flex-wrap gap-2 mb-4">
+                            <a asp-action="ExportQuiz" asp-route-quizId="@Model.LatestQuiz.Id" asp-route-format="pdf"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-file-pdf me-1"></i> Export PDF
+                            </a>
+                            <a asp-action="ExportQuiz" asp-route-quizId="@Model.LatestQuiz.Id" asp-route-format="word"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-file-word me-1"></i> Export Word
+                            </a>
+                        </div>
+                        @for (var i = 0; i < Model.LatestQuiz.Questions.Count; i++)
+                        {
+                            var q = Model.LatestQuiz.Questions[i];
+                            <div class="quiz-item mb-4 pb-3 border-bottom" style="border-color:var(--border)!important;">
+                                <p class="fw-semibold mb-2">@(i + 1). @q.Question</p>
+                                <ul class="list-unstyled mb-2 small">
+                                    @for (var j = 0; j < q.Options.Count; j++)
+                                    {
+                                        var label = (char)('A' + j);
+                                        var isCorrect = j == q.CorrectIndex;
+                                        <li class="@(isCorrect ? "text-success" : "")">
+                                            <strong>@label.</strong> @q.Options[j]
+                                            @if (isCorrect) { <span class="badge bg-success ms-1">Đúng</span> }
+                                        </li>
+                                    }
+                                </ul>
+                                <p class="small mb-0" style="color:var(--text-2);">
+                                    <i class="bi bi-lightbulb me-1"></i>@q.Explanation
+                                </p>
+                            </div>
+                        }
+                        @if (Model.QuizHistory.Count > 1)
+                        {
+                            <details class="mt-2">
+                                <summary class="small text-muted" style="cursor:pointer;">Lịch sử quiz (@Model.QuizHistory.Count phiên)</summary>
+                                <ul class="list-unstyled small mt-2 mb-0">
+                                    @foreach (var h in Model.QuizHistory)
+                                    {
+                                        <li class="py-1">
+                                            @h.CreatedAt.ToLocalTime().ToString("g") — @h.Questions.Count câu
+                                            <a asp-action="ExportQuiz" asp-route-quizId="@h.Id" asp-route-format="pdf" class="ms-2">PDF</a>
+                                            <a asp-action="ExportQuiz" asp-route-quizId="@h.Id" asp-route-format="word" class="ms-1">Word</a>
+                                        </li>
+                                    }
+                                </ul>
+                            </details>
+                        }
+                    }
+                </div>
+            </div>
+        }
     </div>
 
     <div class="col-lg-5">
+        @if (doc.HasSummary)
+        {
+            <div class="app-card mb-4" style="border-color:rgba(139,92,246,.3);background:linear-gradient(135deg,rgba(139,92,246,.1) 0%,var(--surface-1) 100%);">
+                <div class="app-card-header">
+                    <i class="bi bi-stars me-2" style="color:var(--c-violet)"></i>Tóm tắt AI
+                </div>
+                <div class="card-body">
+                    <p class="mb-3" style="font-size:.92rem;line-height:1.65;white-space:pre-wrap;">@doc.Summary</p>
+                    @if (doc.SummaryGeneratedAt.HasValue)
+                    {
+                        <p class="small text-muted mb-0">
+                            <i class="bi bi-clock me-1"></i>
+                            Tạo lúc @doc.SummaryGeneratedAt.Value.ToLocalTime().ToString("g")
+                        </p>
+                    }
+                </div>
+            </div>
+        }
+        else if (doc.IsIndexed)
+        {
+            <div class="app-card mb-4">
+                <div class="card-body">
+                    <p class="small text-muted mb-0">
+                        <i class="bi bi-hourglass-split me-1"></i>
+                        Tóm tắt AI chưa sẵn sàng. Thử <strong>Index lại</strong> hoặc kiểm tra Ollama đang chạy.
+                    </p>
+                </div>
+            </div>
+        }
+
         <div class="app-card mb-4" style="border-color:rgba(99,102,241,.25);background:linear-gradient(135deg,rgba(99,102,241,.08) 0%,var(--surface-1) 100%);">
             <div class="app-card-header">
                 <i class="bi bi-gear me-2" style="color:var(--c-indigo-light)"></i>Thao tác
             </div>
             <div class="card-body d-grid gap-3">
-                <a asp-action="Download" asp-route-id="@Model.Id" class="btn btn-primary">
+                <a asp-action="Download" asp-route-id="@doc.Id" class="btn btn-primary">
                     <i class="bi bi-download me-2"></i> Tải file về máy
                 </a>
-                <form asp-action="Reindex" asp-route-id="@Model.Id" method="post">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn w-100" style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.35);color:#fbbf24;border-radius:var(--radius-sm);">
-                        <i class="bi bi-arrow-repeat me-2"></i> Index lại
-                    </button>
-                </form>
+                @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Teacher"))
+                {
+                    <form asp-action="Reindex" asp-route-id="@doc.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn w-100" style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.35);color:#fbbf24;border-radius:var(--radius-sm);">
+                            <i class="bi bi-arrow-repeat me-2"></i> Index lại
+                        </button>
+                    </form>
+                }
                 <a asp-controller="Chat" asp-action="Index" class="btn btn-outline-primary">
                     <i class="bi bi-chat-heart me-2"></i> Mở Chat AI
                 </a>
@@ -90,7 +215,7 @@
             </div>
         </div>
 
-        @if (Model.Status == DocumentStatus.Indexed)
+        @if (doc.IsIndexed)
         {
             <div class="app-card" style="background:linear-gradient(135deg,rgba(16,185,129,.08) 0%,var(--surface-1) 100%);border-color:rgba(16,185,129,.25);">
                 <div class="card-body">

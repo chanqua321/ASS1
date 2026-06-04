@@ -1,59 +1,59 @@
-<mxfile host="app.diagrams.net" agent="Cursor" pages="8">
+<mxfile host="app.diagrams.net" agent="Cursor" pages="10">
   <diagram id="architecture" name="1-Cau-truc-3-lop">
     <mxGraphModel dx="1572" dy="2163" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" parent="1" style="text;html=1;fontSize=20;fontStyle=1;align=center;" value="ASSIGMENT1 — Cấu trúc dự án (3 lớp MVC + RAG)" vertex="1">
-          <mxGeometry height="40" width="600" x="670" y="-10" as="geometry" />
+        <mxCell id="title" parent="1" style="text;html=1;fontSize=20;fontStyle=1;align=center;" value="ASSIGMENT1 — MVC Clean 3 lớp (Web → BusinessLogic → Model)" vertex="1">
+          <mxGeometry height="40" width="700" x="620" y="-10" as="geometry" />
         </mxCell>
-        <mxCell id="web-box" parent="1" style="swimlane;horizontal=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;startSize=30;" value="WEB — ASP.NET Core MVC&#xa;(Presentation)" vertex="1">
-          <mxGeometry height="280" width="440" x="350" y="50" as="geometry" />
+        <mxCell id="web-box" parent="1" style="swimlane;horizontal=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;startSize=30;" value="WEB — ASP.NET Core MVC (reference BusinessLogic \(+ Model tại Program.cs cho DbContext\))" vertex="1">
+          <mxGeometry height="300" width="440" x="350" y="50" as="geometry" />
         </mxCell>
-        <mxCell id="web-program" parent="web-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Program.cs&#xa;• DI + DbContext&#xa;• Auto Migrate" vertex="1">
-          <mxGeometry height="70" width="180" x="20" y="45" as="geometry" />
+        <mxCell id="web-program" parent="web-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Program.cs&#xa;• AddDbContext (SqlServer) + AddRepositories()&#xa;• Configure Chat:Ai + Chat:Rag (appsettings)&#xa;• HttpClient: RagAnswerGenerator, QuizService&#xa;• MigrateAsync() + seed users" vertex="1">
+          <mxGeometry height="80" width="180" x="20" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="web-controllers" parent="web-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" value="Controllers&#xa;• DocumentsController (WF1)&#xa;• ChatController (WF2)&#xa;• HomeController" vertex="1">
+        <mxCell id="web-controllers" parent="web-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" value="Controllers (HTTP in/out)&#xa;• DocumentsController — WF1&#xa;• ChatController — WF2&#xa;• AccountController · Admin* · Dashboard" vertex="1">
           <mxGeometry height="90" width="200" x="220" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="web-views" parent="web-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" value="Views + ViewModels&#xa;• Documents/ Index, Upload&#xa;• Chat/ Index, Session&#xa;• appsettings.json" vertex="1">
-          <mxGeometry height="120" width="400" x="20" y="140" as="geometry" />
+        <mxCell id="web-views" parent="web-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" value="Views + ViewModels (Web.ViewModels)&#xa;• DocumentListViewModel, DocumentUploadViewModel&#xa;• ChatIndexViewModel, ChatSessionViewModel&#xa;• KHÔNG dùng Model.Entities / Model.Enums" vertex="1">
+          <mxGeometry height="130" width="400" x="20" y="140" as="geometry" />
         </mxCell>
-        <mxCell id="service-box" parent="1" style="swimlane;horizontal=0;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;startSize=30;" value="SERVICE — Class Library&#xa;(Business Logic)" vertex="1">
+        <mxCell id="service-box" parent="1" style="swimlane;horizontal=0;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;startSize=30;" value="BUSINESS LOGIC — BusinessLogic Project&#xa;(Business Logic)" vertex="1">
           <mxGeometry height="320" width="440" x="350" y="370" as="geometry" />
         </mxCell>
-        <mxCell id="svc-doc" parent="service-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" value="WF1 — Tài liệu&#xa;• DocumentService&#xa;• SubjectService&#xa;• ChunkingService&#xa;• MockEmbeddingService&#xa;• StubDocumentTextExtractor" vertex="1">
+        <mxCell id="svc-doc" parent="service-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" value="WF1 — Tài liệu&#xa;• DocumentService&#xa;• SubjectService · ChunkingService&#xa;• MockEmbeddingService&#xa;• DocumentTextExtractor&#xa;• DocumentSummaryService · QuizService" vertex="1">
           <mxGeometry height="120" width="190" x="20" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="svc-chat" parent="service-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" value="WF2 — Chat RAG&#xa;• ChatService&#xa;• RetrievalService&#xa;• RagAnswerGenerator (Ollama + local)&#xa;• AiHealthService&#xa;• RagChunkSelector" vertex="1">
+        <mxCell id="svc-chat" parent="service-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" value="WF2 — Chat RAG&#xa;• ChatService + EnrollmentService&#xa;• RetrievalService&#xa;• RagAnswerGenerator (Ollama)&#xa;• AiHealthService&#xa;• ConversationalIntentHelper" vertex="1">
           <mxGeometry height="130" width="190" x="230" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="svc-di" parent="service-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="ServiceCollectionExtensions&#xa;AddApplicationServices()" vertex="1">
+        <mxCell id="svc-di" parent="service-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Program.cs (Web)&#xa;AddDbContext \| AddRepositories()&#xa;Configure Options + Scoped Logic classes" vertex="1">
           <mxGeometry height="50" width="400" x="20" y="190" as="geometry" />
         </mxCell>
-        <mxCell id="svc-dto" parent="service-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="DTOs | Interfaces | Options&#xa;(RagChatOptions, AiModelOptions)" vertex="1">
+        <mxCell id="svc-dto" parent="service-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="IBusinessLogic/ \| Logic/ \| DTOs/ \| Helpers/ \| Options/&#xa;DocumentDisplayHelper, RagChatOptions, AiModelOptions" vertex="1">
           <mxGeometry height="50" width="400" x="20" y="255" as="geometry" />
         </mxCell>
-        <mxCell id="model-box" parent="1" style="swimlane;horizontal=0;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;startSize=30;" value="MODEL — Class Library&#xa;(Data / EF Core Code First)" vertex="1">
+        <mxCell id="model-box" parent="1" style="swimlane;horizontal=0;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;startSize=30;" value="MODEL — Class Library&#xa;(Data / EF Core + Repository Pattern)" vertex="1">
           <mxGeometry height="200" width="440" x="350" y="730" as="geometry" />
         </mxCell>
         <mxCell id="model-ent" parent="model-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" value="Entities&#xa;Subject, Chapter, Document&#xa;DocumentChunk, DocumentEmbedding&#xa;ChatSession, ChatMessage, MessageCitation" vertex="1">
           <mxGeometry height="130" width="250" x="20" y="45" as="geometry" />
         </mxCell>
-        <mxCell id="model-db" parent="model-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="AppDbContext&#xa;+ Migrations" vertex="1">
+        <mxCell id="model-db" parent="model-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="IRepository/ Repository/&#xa;IUnitOfWork/ UnitOfWork/&#xa;AppDbContext + Migrations" vertex="1">
           <mxGeometry height="130" width="130" x="290" y="45" as="geometry" />
         </mxCell>
         <mxCell id="ext-box" parent="1" style="swimlane;horizontal=0;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;startSize=30;" value="HỆ THỐNG NGOÀI" vertex="1">
           <mxGeometry height="400" width="320" x="870" y="50" as="geometry" />
         </mxCell>
-        <mxCell id="sql" parent="ext-box" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="SQL Server&#xa;(localdb)\MSSQLLocalDB&#xa;DB: Assigment1DocDb&#xa;User: sa / 12345" vertex="1">
+        <mxCell id="sql" parent="ext-box" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Database&#xa;SQL Server LocalDB&#xa;Assigment1DocDb&#xa;MigrateAsync() khi start" vertex="1">
           <mxGeometry height="100" width="240" x="40" y="50" as="geometry" />
         </mxCell>
-        <mxCell id="ollama" parent="ext-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" value="Ollama (Local AI)&#xa;http://localhost:11434&#xa;Model: llama3.2&#xa;→ Câu trả lời tự nhiên" vertex="1">
-          <mxGeometry height="90" width="240" x="40" y="180" as="geometry" />
+        <mxCell id="ollama" parent="ext-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;align=left;spacingLeft=10;" value="Ollama (Local AI)&#xa;appsettings → Chat:Ai&#xa;http://localhost:11434/v1/&#xa;Model: llama3.2 · không API key&#xa;RagAnswerGenerator · QuizService" vertex="1">
+          <mxGeometry height="100" width="240" x="40" y="170" as="geometry" />
         </mxCell>
-        <mxCell id="storage" parent="ext-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;" value="File Storage&#xa;Web/App_Data/uploads&#xa;(PDF, DOCX, PPTX)" vertex="1">
-          <mxGeometry height="70" width="240" x="50" y="300" as="geometry" />
+        <mxCell id="storage" parent="ext-box" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;align=left;spacingLeft=10;" value="File Storage&#xa;Web/App_Data/uploads&#xa;(PDF, DOCX, PPTX)" vertex="1">
+          <mxGeometry height="70" width="240" x="40" y="290" as="geometry" />
         </mxCell>
         <mxCell id="dep1" edge="1" parent="1" source="web-controllers" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=block;endFill=1;strokeWidth=2;" target="svc-doc">
           <mxGeometry relative="1" as="geometry" />
@@ -86,8 +86,8 @@
         <mxCell id="dep7" edge="1" parent="1" source="svc-doc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=block;endFill=1;dashed=1;" target="storage">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="legend" parent="1" style="text;html=1;align=left;fillColor=#f5f5f5;strokeColor=#666666;" value="Quy tắc: Web → Service → Model → DB&#xa;Không gọi DbContext trực tiếp từ Controller (trừ Program.cs)" vertex="1">
-          <mxGeometry height="50" width="320" x="870" y="490" as="geometry" />
+        <mxCell id="legend" parent="1" style="text;html=1;align=left;fillColor=#f5f5f5;strokeColor=#666666;" value="Quy tắc MVC Clean:&#xa;Web → BusinessLogic (DTO) → Model (IRepository + Entity) → DB&#xa;Controller KHÔNG gọi DbContext / Repository / Entity" vertex="1">
+          <mxGeometry height="55" width="320" x="870" y="490" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
@@ -128,23 +128,26 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="cfg-title" value="CẤU HÌNH appsettings.json" style="text;html=1;fontSize=18;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="300" y="20" width="400" height="40" as="geometry" />
+        <mxCell id="cfg-title" value="CẤU HÌNH CODE (appsettings + launchSettings)" style="text;html=1;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="20" width="500" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="cfg-db" value="ConnectionStrings.DefaultConnection&#xa;Server=(localdb)\MSSQLLocalDB&#xa;Database=Assigment1DocDb&#xa;User Id=sa; Password=12345" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;align=left;spacingLeft=10;fontFamily=Courier New;" vertex="1" parent="1">
-          <mxGeometry x="80" y="80" width="400" height="90" as="geometry" />
+        <mxCell id="cfg-db-prod" value="Database (appsettings.json)&#xa;ConnectionStrings:DefaultConnection&#xa;Server=(localdb)\MSSQLLocalDB&#xa;Database=Assigment1DocDb&#xa;→ MigrateAsync() khi app start" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;align=left;spacingLeft=10;fontFamily=Courier New;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="80" y="70" width="860" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="cfg-rag" value="Chat:Rag&#xa;TopK=5 | MinSimilarityScore=0.12&#xa;MetadataBoostScore=0.92&#xa;MaxHistoryMessages=6" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;align=left;spacingLeft=10;fontFamily=Courier New;" vertex="1" parent="1">
-          <mxGeometry x="520" y="80" width="320" height="90" as="geometry" />
+        <mxCell id="cfg-rag" value="Chat:Rag&#xa;TopK=5 | MinSimilarityScore=0.12 | FallbackMinScore=0.05&#xa;MetadataBoostScore=0.92 | MaxHistoryMessages=6&#xa;IncludeCitationsByDefault=false | MaxCitations=3&#xa;SummaryTopK=12 | SummaryMaxChunks=6&#xa;QuizDefaultQuestionCount=10" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;align=left;spacingLeft=10;fontFamily=Courier New;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="80" y="160" width="420" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="cfg-ai" value="Chat:Ai — OLLAMA&#xa;Provider=Ollama | Enabled=true&#xa;Model=llama3.2&#xa;BaseUrl=http://localhost:11434/v1/&#xa;Temperature=0.3 | MaxTokens=1024" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;spacingLeft=10;fontFamily=Courier New;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="80" y="200" width="400" height="110" as="geometry" />
+        <mxCell id="cfg-ai" value="Chat:Ai — Ollama (local)&#xa;Provider=Ollama | Enabled=true&#xa;Model=llama3.2&#xa;BaseUrl=http://localhost:11434/v1/&#xa;Không cần ApiKey · POST /chat/completions&#xa;Map → AiModelOptions (Program.cs)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;spacingLeft=10;fontFamily=Courier New;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="520" y="160" width="420" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="cfg-store" value="DocumentStorage.UploadPath&#xa;App_Data/uploads" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;align=left;spacingLeft=10;fontFamily=Courier New;" vertex="1" parent="1">
-          <mxGeometry x="520" y="200" width="320" height="60" as="geometry" />
+        <mxCell id="cfg-store" value="DocumentStorage.UploadPath = App_Data/uploads&#xa;launchSettings: http://localhost:5288 | https://7288" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;align=left;spacingLeft=10;fontFamily=Courier New;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="80" y="280" width="420" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="cfg-note" value="Lệnh gen DB:&#xa;dotnet ef database update --project Model --startup-project Web&#xa;&#xa;Ollama: ollama pull llama3.2 → giữ app chạy nền" style="text;html=1;align=left;fillColor=#f5f5f5;strokeColor=#666666;spacingLeft=8;" vertex="1" parent="1">
-          <mxGeometry x="80" y="340" width="760" height="70" as="geometry" />
+        <mxCell id="cfg-di" value="DI — Program.cs&#xa;AddDbContext → SqlServer + MigrateAsync&#xa;AddRepositories() → IRepository + IUnitOfWork&#xa;Scoped: DocumentService, ChatService, RetrievalService...&#xa;HttpClient: RagAnswerGenerator, AiHealthService, QuizService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;align=left;spacingLeft=10;fontFamily=Courier New;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="520" y="280" width="420" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cfg-note" value="Chạy app: dotnet run --project Web&#xa;Migrate (SqlServer): dotnet ef database update --project Model --startup-project Web&#xa;Ollama: ollama pull llama3.2" style="text;html=1;align=left;fillColor=#f5f5f5;strokeColor=#666666;spacingLeft=8;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="80" y="400" width="860" height="55" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
@@ -207,7 +210,7 @@
         <mxCell id="t5" value="WF1 — UPLOAD TÀI LIỆU (Request / Response — MVC 3 lớp)" style="text;html=1;fontSize=18;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="280" y="15" width="600" height="40" as="geometry"/>
         </mxCell>
-        <mxCell id="leg5" value="━━ Request (xanh)   ┄┄ Response (xanh lá, đứt)   |   Web → Service (DTO) → Model (Entity)" style="text;html=1;fontSize=11;fontStyle=2;" vertex="1" parent="1">
+        <mxCell id="leg5" value="━━ Request (xanh)   ┄┄ Response (xanh lá, đứt)   |   Web → BusinessLogic (DTO) → Model (Entity)" style="text;html=1;fontSize=11;fontStyle=2;" vertex="1" parent="1">
           <mxGeometry x="40" y="55" width="700" height="22" as="geometry"/>
         </mxCell>
         <mxCell id="lane-b" value="① Browser" style="swimlane;horizontal=0;fillColor=#f5f5f5;startSize=25;fontStyle=1;" vertex="1" parent="1">
@@ -216,10 +219,10 @@
         <mxCell id="lane-c" value="② Web — DocumentsController" style="swimlane;horizontal=0;fillColor=#dae8fc;startSize=25;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="220" y="85" width="200" height="1020" as="geometry"/>
         </mxCell>
-        <mxCell id="lane-s" value="③ Service — DocumentService" style="swimlane;horizontal=0;fillColor=#d5e8d4;startSize=25;fontStyle=1;" vertex="1" parent="1">
+        <mxCell id="lane-s" value="③ BusinessLogic — DocumentService" style="swimlane;horizontal=0;fillColor=#d5e8d4;startSize=25;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="440" y="85" width="200" height="1020" as="geometry"/>
         </mxCell>
-        <mxCell id="lane-m" value="④ Model — AppDbContext + File" style="swimlane;horizontal=0;fillColor=#ffe6cc;startSize=25;fontStyle=1;" vertex="1" parent="1">
+        <mxCell id="lane-m" value="④ Model — IRepository + File disk" style="swimlane;horizontal=0;fillColor=#ffe6cc;startSize=25;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="660" y="85" width="200" height="1020" as="geometry"/>
         </mxCell>
         <mxCell id="m1" value="REQ GET /Documents/Upload" style="endArrow=block;strokeColor=#0066CC;fontColor=#0066CC;fontStyle=1;" edge="1" parent="1">
@@ -290,7 +293,7 @@
         <mxCell id="t6" value="WF2 — CHAT RAG + AI (Request / Response — MVC 3 lớp)" style="text;html=1;fontSize=18;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="320" y="15" width="600" height="40" as="geometry"/>
         </mxCell>
-        <mxCell id="leg6" value="Model = DB (Entity). Ollama = AI ngoài (HTTP). Service gọi cả hai." style="text;html=1;fontSize=11;fontStyle=2;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+        <mxCell id="leg6" value="Model = DB (Entity). Ollama = AI ngoài (HTTP). BusinessLogic gọi cả hai." style="text;html=1;fontSize=11;fontStyle=2;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
           <mxGeometry x="40" y="55" width="520" height="28" as="geometry"/>
         </mxCell>
         <mxCell id="cb" value="① Browser" style="swimlane;horizontal=0;fillColor=#f5f5f5;startSize=25;fontStyle=1;" vertex="1" parent="1">
@@ -299,10 +302,10 @@
         <mxCell id="cc" value="② Web — ChatController" style="swimlane;horizontal=0;fillColor=#dae8fc;startSize=25;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="200" y="90" width="180" height="1100" as="geometry"/>
         </mxCell>
-        <mxCell id="cs" value="③ Service — ChatService" style="swimlane;horizontal=0;fillColor=#d5e8d4;startSize=25;fontStyle=1;" vertex="1" parent="1">
+        <mxCell id="cs" value="③ BusinessLogic — ChatService" style="swimlane;horizontal=0;fillColor=#d5e8d4;startSize=25;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="400" y="90" width="180" height="1100" as="geometry"/>
         </mxCell>
-        <mxCell id="cdb" value="④ Model — AppDbContext" style="swimlane;horizontal=0;fillColor=#ffe6cc;startSize=25;fontStyle=1;" vertex="1" parent="1">
+        <mxCell id="cdb" value="④ Model — IRepository / UoW" style="swimlane;horizontal=0;fillColor=#ffe6cc;startSize=25;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="600" y="90" width="160" height="1100" as="geometry"/>
         </mxCell>
         <mxCell id="co" value="⑤ Ngoài — Ollama" style="swimlane;horizontal=0;fillColor=#e1d5e7;startSize=25;fontStyle=1;" vertex="1" parent="1">
@@ -350,13 +353,13 @@
         <mxCell id="json-req" value="REQUEST JSON" style="swimlane;fillColor=#e6f2ff;strokeColor=#0066CC;fontStyle=1;startSize=22;" vertex="1" parent="1">
           <mxGeometry x="980" y="180" width="400" height="160" as="geometry"/>
         </mxCell>
-        <mxCell id="json-req-t" value="{&#xa;  &quot;sessionId&quot;: &quot;3fa85f64-...&quot;,&#xa;  &quot;question&quot;: &quot;Môn EXE101 có tài liệu gì?&quot;,&#xa;  &quot;subjectId&quot;: 3&#xa;}" style="text;html=1;align=left;fontFamily=Courier New;fontSize=11;spacingLeft=8;" vertex="1" parent="json-req">
+        <mxCell id="json-req-t" value="{&#xa;  &quot;sessionId&quot;: &quot;3fa85f64-5717-4562-b3fc-2c963f66afa6&quot;,&#xa;  &quot;question&quot;: &quot;Tóm tắt bài EXE101 chương 1&quot;,&#xa;  &quot;subjectId&quot;: 3,&#xa;  &quot;includeCitations&quot;: true&#xa;}" style="text;html=1;align=left;fontFamily=Courier New;fontSize=11;spacingLeft=8;" vertex="1" parent="json-req">
           <mxGeometry x="10" y="35" width="380" height="115" as="geometry"/>
         </mxCell>
         <mxCell id="json-res" value="RESPONSE JSON 200" style="swimlane;fillColor=#e6ffe6;strokeColor=#009900;fontStyle=1;startSize=22;" vertex="1" parent="1">
           <mxGeometry x="980" y="370" width="400" height="300" as="geometry"/>
         </mxCell>
-        <mxCell id="json-res-t" value="{&#xa;  &quot;sessionId&quot;: &quot;guid&quot;,&#xa;  &quot;answeredFromDocuments&quot;: true,&#xa;  &quot;userMessage&quot;: { &quot;id&quot;, &quot;role&quot;:0, &quot;content&quot;, &quot;citations&quot;:[] },&#xa;  &quot;assistantMessage&quot;: {&#xa;    &quot;role&quot;:1, &quot;content&quot;: &quot;...&quot;,&#xa;    &quot;citations&quot;: [{ documentId, fileName, excerpt, score }]&#xa;  }&#xa;}" style="text;html=1;align=left;fontFamily=Courier New;fontSize=10;spacingLeft=8;" vertex="1" parent="json-res">
+        <mxCell id="json-res-t" value="{&#xa;  &quot;sessionId&quot;: &quot;guid&quot;,&#xa;  &quot;answeredFromDocuments&quot;: true,&#xa;  &quot;downloadableDocuments&quot;: [{ documentId, fileName, score }],&#xa;  &quot;userMessage&quot;: { id, role:0, isUser:true, content, citations:[] },&#xa;  &quot;assistantMessage&quot;: {&#xa;    role:1, isUser:false, content,&#xa;    citations: [{ documentId, chunkId, fileName, excerpt, score }]&#xa;  }&#xa;}" style="text;html=1;align=left;fontFamily=Courier New;fontSize=10;spacingLeft=8;" vertex="1" parent="json-res">
           <mxGeometry x="10" y="35" width="380" height="255" as="geometry"/>
         </mxCell>
         <mxCell id="ollama-req" value="OLLAMA REQUEST" style="swimlane;fillColor=#f3e8ff;strokeColor=#9673a6;fontStyle=1;startSize=22;" vertex="1" parent="1">
@@ -368,8 +371,8 @@
         <mxCell id="err" value="RES 400 { &quot;error&quot;: &quot;...&quot; }" style="rounded=1;fillColor=#f8cecc;strokeColor=#b85450;fontFamily=Courier New;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="980" y="880" width="400" height="40" as="geometry"/>
         </mxCell>
-        <mxCell id="create-flow" value="Tạo phiên: REQ POST /Chat/Create (form) → RES 302 /Chat/Session/{guid}" style="text;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=8;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="40" y="1050" width="500" height="35" as="geometry"/>
+        <mxCell id="create-flow" value="Tạo phiên: POST /Chat/Create (form subjectId?) → 302 /Chat/Session/{guid}&#xa;Đăng ký môn: POST /Chat/Enroll JSON { subjectId, fullName, email } → 200 { success, message } | 400 { error }" style="text;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=8;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1050" width="700" height="45" as="geometry"/>
         </mxCell>
       </root>
     </mxGraphModel>
@@ -418,7 +421,7 @@
         <mxCell id="r1d" value="200 HTML DocumentListViewModel" style="shape=partialRectangle;align=left;spacingLeft=6;fontSize=11;" vertex="1" parent="r1">
           <mxGeometry x="680" width="400" height="70" as="geometry"/>
         </mxCell>
-        <mxCell id="r1e" value="Web→Service→Model (DTO↔Entity)" style="shape=partialRectangle;fontSize=10;" vertex="1" parent="r1">
+        <mxCell id="r1e" value="Web→BusinessLogic→Model (DTO↔Entity)" style="shape=partialRectangle;fontSize=10;" vertex="1" parent="r1">
           <mxGeometry x="1080" width="240" height="70" as="geometry"/>
         </mxCell>
         <mxCell id="r2" value="" style="tableRow;horizontal=0;startSize=0;fillColor=#f5f5f5;" vertex="1" parent="tbl">
@@ -490,7 +493,7 @@
         <mxCell id="r5d" value="200 HTML + messages history" style="shape=partialRectangle;align=left;spacingLeft=6;fontSize=11;" vertex="1" parent="r5">
           <mxGeometry x="680" width="400" height="70" as="geometry"/>
         </mxCell>
-        <mxCell id="r5e" value="Web→Service→Model (HTML)" style="shape=partialRectangle;fontSize=10;" vertex="1" parent="r5">
+        <mxCell id="r5e" value="Web→BusinessLogic→Model (HTML)" style="shape=partialRectangle;fontSize=10;" vertex="1" parent="r5">
           <mxGeometry x="1080" width="240" height="70" as="geometry"/>
         </mxCell>
         <mxCell id="r6" value="" style="tableRow;horizontal=0;startSize=0;fillColor=#e6f2ff;" vertex="1" parent="tbl">
@@ -541,14 +544,14 @@
         <mxCell id="r8c" value="id trong URL" style="shape=partialRectangle;align=left;spacingLeft=6;fontSize=11;" vertex="1" parent="r8">
           <mxGeometry x="280" width="400" height="70" as="geometry"/>
         </mxCell>
-        <mxCell id="r8d" value="200 HTML DocumentDetailDto | 404" style="shape=partialRectangle;align=left;spacingLeft=6;fontSize=11;" vertex="1" parent="r8">
+        <mxCell id="r8d" value="200 HTML DocumentListItemDto | 404" style="shape=partialRectangle;align=left;spacingLeft=6;fontSize=11;" vertex="1" parent="r8">
           <mxGeometry x="680" width="400" height="70" as="geometry"/>
         </mxCell>
         <mxCell id="r8e" value="GetByIdAsync" style="shape=partialRectangle;fontSize=10;" vertex="1" parent="r8">
           <mxGeometry x="1080" width="240" height="70" as="geometry"/>
         </mxCell>
-        <mxCell id="legend2" value="★ Tab 8 = tổng quan | Tab 5,6 = sequence chi tiết | Model=DB, Ollama=AI ngoài" style="text;html=1;align=left;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-          <mxGeometry x="40" y="920" width="800" height="40" as="geometry"/>
+        <mxCell id="legend2" value="Tab 9 = DTO/ViewModel mapping | Tab 10 = Startup sequence | Tab 5,6 = sequence chi tiết Upload &amp; Chat" style="text;html=1;align=left;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="40" y="920" width="900" height="40" as="geometry"/>
         </mxCell>
       </root>
     </mxGraphModel>
@@ -561,7 +564,7 @@
         <mxCell id="t8" value="LUỒNG REQUEST / RESPONSE HỢP LÝ (MVC 3 lớp)" style="text;html=1;fontSize=20;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="400" y="15" width="550" height="35" as="geometry"/>
         </mxCell>
-        <mxCell id="rule" value="Nguyên tắc:&#xa;• Web chỉ nhận HTTP + trả View/JSON/File&#xa;• Controller map ViewModel ↔ DTO, không xử lý nghiệp vụ&#xa;• Service xử lý logic, gọi DB / Ollama&#xa;• Model = Entity + DbContext" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="rule" value="Nguyên tắc:&#xa;• Web chỉ nhận HTTP + trả View/JSON/File&#xa;• Controller map ViewModel ↔ DTO, không xử lý nghiệp vụ&#xa;• BusinessLogic xử lý nghiệp vụ, gọi DB / Ollama&#xa;• Model = Entity + DbContext" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="40" y="55" width="320" height="85" as="geometry"/>
         </mxCell>
         <mxCell id="legend8" value="━━ Request (xuôi)  ┄┄ Response (ngược)" style="text;html=1;fontSize=12;fontStyle=2;" vertex="1" parent="1">
@@ -591,7 +594,7 @@
         <mxCell id="a03" style="endArrow=block;strokeWidth=2;strokeColor=#0066CC;" edge="1" parent="1" source="p3" target="p4">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="p4" value="④ DATA (2 nhánh)&#xa;• Model → SQL Server (Entity)&#xa;• Ngoài → Ollama HTTP / File disk" style="rounded=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;align=left;spacingLeft=8;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="p4" value="④ DATA (2 nhánh)&#xa;• Model → SQL Server LocalDB (Assigment1DocDb)&#xa;• Ngoài → Ollama HTTP (appsettings Chat:Ai) / File disk" style="rounded=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;align=left;spacingLeft=8;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="520" y="290" width="360" height="55" as="geometry"/>
         </mxCell>
         <mxCell id="a04" style="endArrow=open;dashed=1;strokeWidth=2;strokeColor=#009900;" edge="1" parent="1" source="p4" target="p3">
@@ -646,10 +649,10 @@
         <mxCell id="c3" value="REQ: GET /Chat/Session/{id}&#xa;RES: 200 HTML + lịch sử tin nhắn" style="rounded=1;fillColor=#e6f2ff;strokeColor=#0066CC;align=left;spacingLeft=8;fontSize=11;" vertex="1" parent="wf2t">
           <mxGeometry x="15" y="160" width="350" height="50" as="geometry"/>
         </mxCell>
-        <mxCell id="c4" value="REQ: POST /Chat/Send (JSON) ★&#xa;Body: { sessionId, question, subjectId }" style="rounded=1;fillColor=#0066CC;fontColor=#ffffff;align=left;spacingLeft=8;fontSize=11;fontStyle=1;" vertex="1" parent="wf2t">
-          <mxGeometry x="15" y="220" width="350" height="50" as="geometry"/>
+        <mxCell id="c4" value="REQ: POST /Chat/Send (JSON) ★&#xa;Body: { sessionId, question, subjectId, includeCitations? }" style="rounded=1;fillColor=#0066CC;fontColor=#ffffff;align=left;spacingLeft=8;fontSize=11;fontStyle=1;" vertex="1" parent="wf2t">
+          <mxGeometry x="15" y="220" width="350" height="55" as="geometry"/>
         </mxCell>
-        <mxCell id="c5" value="Service nội bộ (ChatSendRequest DTO):&#xa;1. Lưu User → Model (Entity)&#xa;2. RetrieveAsync → Model (chunks)&#xa;3. GenerateAsync → Ollama (HTTP)&#xa;4. Lưu Assistant + Citations → Model&#xa;5. Trả ChatSendResponse (DTO)" style="rounded=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;spacingLeft=8;fontSize=11;" vertex="1" parent="wf2t">
+        <mxCell id="c5" value="BusinessLogic nội bộ (ChatSendRequest DTO):&#xa;1. Lưu User → Model (Entity)&#xa;2. RetrieveAsync → Model (chunks)&#xa;3. GenerateAsync → Ollama (HTTP)&#xa;4. Lưu Assistant + Citations → Model&#xa;5. Trả ChatSendResponse (DTO)" style="rounded=1;fillColor=#e1d5e7;strokeColor=#9673a6;align=left;spacingLeft=8;fontSize=11;" vertex="1" parent="wf2t">
           <mxGeometry x="390" y="40" width="355" height="120" as="geometry"/>
         </mxCell>
         <mxCell id="c6" value="RES: 200 JSON ChatSendResponse&#xa;{ sessionId, userMessage,&#xa;  assistantMessage + citations,&#xa;  answeredFromDocuments }&#xa;RES lỗi: 400 { error }" style="rounded=1;fillColor=#e6ffe6;strokeColor=#009900;align=left;spacingLeft=8;fontSize=11;fontStyle=1;" vertex="1" parent="wf2t">
@@ -658,11 +661,171 @@
         <mxCell id="codes" value="MÃ HTTP hợp lý&#xa;200 OK — thành công (HTML/JSON/File)&#xa;302 Found — redirect sau POST&#xa;400 Bad Request — validate / lỗi nghiệp vụ&#xa;404 Not Found — id không tồn tại" style="rounded=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="40" y="720" width="400" height="100" as="geometry"/>
         </mxCell>
-        <mxCell id="dto-box" value="RANH GIỚI DTO / ENTITY&#xa;• Web nhận: ViewModel (form) hoặc JSON body&#xa;• Controller → Service: DTO (ChatSendRequest, DocumentUploadRequest)&#xa;• Service → Model: Entity qua AppDbContext&#xa;• Service → Ollama: HTTP JSON (không qua Model project)&#xa;• Controller → Browser: View / JSON DTO — KHÔNG trả Entity" style="rounded=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="dto-box" value="RANH GIỚI DTO / ENTITY&#xa;• Web nhận: ViewModel (form) hoặc JSON body&#xa;• Controller → BusinessLogic: DTO (ChatSendRequest, DocumentUploadRequest)&#xa;• BusinessLogic → Model: Entity qua IRepository + IUnitOfWork&#xa;• BusinessLogic → Ollama: HTTP JSON (không qua Model project)&#xa;• Controller → Browser: View / JSON DTO — KHÔNG trả Entity" style="rounded=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="480" y="720" width="560" height="110" as="geometry"/>
         </mxCell>
         <mxCell id="tab-guide" value="Hướng dẫn đọc: Tab 8 (tổng quan) → Tab 5 (Upload sequence) → Tab 6 (Chat+AI sequence) → Tab 7 (bảng API)" style="text;html=1;fontStyle=2;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="40" y="850" width="700" height="30" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="dto-mapping" name="9-DTO-ViewModel-Mapping">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="t9" value="ÁNH XẠ DTO ↔ ViewModel ↔ Entity (MVC Clean)" style="text;html=1;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="15" width="550" height="35" as="geometry"/>
+        </mxCell>
+        <mxCell id="web-col" value="WEB — ViewModels (form / view)" style="swimlane;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;startSize=28;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="480" height="1080" as="geometry"/>
+        </mxCell>
+        <mxCell id="svc-col" value="BUSINESS LOGIC — DTOs (contract giữa Web &amp; BusinessLogic)" style="swimlane;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;startSize=28;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="560" y="60" width="480" height="1080" as="geometry"/>
+        </mxCell>
+        <mxCell id="mdl-col" value="MODEL — Entities (EF Core, chỉ BusinessLogic dùng (qua Repository))" style="swimlane;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;startSize=28;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="60" width="480" height="1080" as="geometry"/>
+        </mxCell>
+        <mxCell id="u1w" value="DocumentUploadViewModel&#xa;• File (IFormFile)&#xa;• SubjectInputMode: existing|new&#xa;• SubjectId / NewSubjectName, NewSubjectCode&#xa;• ChapterId / NewChapterTitle" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="web-col">
+          <mxGeometry x="15" y="45" width="450" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="u1s" value="DocumentUploadRequest&#xa;• FileName, ContentType, FileSizeBytes&#xa;• FileStream&#xa;• SubjectId / NewSubjectName / NewSubjectCode&#xa;• ChapterId / NewChapterTitle" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="svc-col">
+          <mxGeometry x="15" y="45" width="450" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="u1m" value="Document + Subject + Chapter&#xa;• Document: FileName, FileType, Status, StoragePath&#xa;• DocumentChunk + DocumentEmbedding&#xa;• Status: Uploaded→Processing→Indexed" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="mdl-col">
+          <mxGeometry x="15" y="45" width="450" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="a-u1" style="endArrow=block;strokeColor=#0066CC;" edge="1" parent="1" source="u1w" target="u1s">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a-u1l" value="Controller map" style="edgeLabel;fontSize=10;" connectable="0" parent="a-u1">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+        <mxCell id="a-u2" style="endArrow=block;strokeColor=#0066CC;" edge="1" parent="1" source="u1s" target="u1m">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="a-u2l" value="DocumentService.UploadAsync" style="edgeLabel;fontSize=10;" connectable="0" parent="a-u2">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+        <mxCell id="l1w" value="DocumentListViewModel&#xa;• FilterSubjectId, Subjects[]&#xa;• Documents: DocumentListItemDto[]" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="web-col">
+          <mxGeometry x="15" y="180" width="450" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="l1s" value="DocumentListItemDto&#xa;• Id, FileName, FileTypeLabel&#xa;• StatusLabel, StatusBadgeClass, StatusIcon&#xa;• IsIndexed, SubjectName, ChapterTitle&#xa;• ChunkCount, UploadedAt, ProcessedAt" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="svc-col">
+          <mxGeometry x="15" y="180" width="450" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="l1m" value="Document (Entity)&#xa;→ Map qua DocumentDisplayHelper" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="mdl-col">
+          <mxGeometry x="15" y="180" width="450" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="c1w" value="ChatSessionViewModel&#xa;• Session: ChatSessionDto&#xa;• Messages: ChatMessageDto[]&#xa;• AiStatus, IncludeCitationsByDefault&#xa;• CanEnrollSubject, EnrollSubjectId" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="web-col">
+          <mxGeometry x="15" y="300" width="450" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="c1s" value="ChatSendRequest (JSON in)&#xa;• SessionId?, Question, SubjectId?&#xa;• IncludeCitations?&#xa;&#xa;ChatSendResponse (JSON out)&#xa;• SessionId, AnsweredFromDocuments&#xa;• UserMessage, AssistantMessage&#xa;• DownloadableDocuments[]" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="svc-col">
+          <mxGeometry x="15" y="300" width="450" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="c1m" value="ChatSession, ChatMessage, MessageCitation&#xa;• Role: User(0) / Assistant(1)&#xa;• Citations: DocumentId, ChunkId, Excerpt, Score" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="mdl-col">
+          <mxGeometry x="15" y="300" width="450" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1w" value="SubjectEnrollmentRequest (JSON)&#xa;• SubjectId, FullName, Email" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="web-col">
+          <mxGeometry x="15" y="430" width="450" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1s" value="SubjectEnrollmentResultDto&#xa;• Success, Message, SubjectName" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="svc-col">
+          <mxGeometry x="15" y="430" width="450" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1m" value="SubjectEnrollment (Entity)&#xa;• SubjectId, FullName, Email, EnrolledAt" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="mdl-col">
+          <mxGeometry x="15" y="430" width="450" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="sub-w" value="SubjectListItemDto (BusinessLogic → Web)&#xa;• Id, Code, Name&#xa;• Chapters: ChapterListItemDto[]" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="svc-col">
+          <mxGeometry x="15" y="530" width="450" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="sub-m" value="Subject + Chapter (Entity)" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="mdl-col">
+          <mxGeometry x="15" y="530" width="450" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai-s" value="AiStatusDto&#xa;• ConfiguredForAi, IsOnline&#xa;• Provider, Model, Message" style="rounded=1;fillColor=#e1d5e7;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="svc-col">
+          <mxGeometry x="15" y="630" width="450" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="dl-s" value="DocumentDownloadDto (internal BusinessLogic)&#xa;• FileStream, FileName, ContentType&#xa;→ Controller trả File() cho browser" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="svc-col">
+          <mxGeometry x="15" y="720" width="450" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="rule9" value="QUY TẮC:&#xa;✓ Web Views dùng DTO display props (StatusLabel, IsUser...) — KHÔNG import Model.Enums&#xa;✓ Controller map ViewModel ↔ DTO, không xử lý nghiệp vụ&#xa;✓ BusinessLogic map Entity ↔ DTO qua Repository&#xa;✗ Controller/View KHÔNG dùng Model.Entities&#xa;  (Program.cs được dùng DbContext — composition root)" style="rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1160" width="1520" height="70" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="startup-seq" name="10-Startup-Request-Lifecycle">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="t10" value="VÒNG ĐỜI REQUEST — Từ khởi động app đến HTTP Response" style="text;html=1;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="15" width="650" height="35" as="geometry"/>
+        </mxCell>
+        <mxCell id="phase1" value="PHASE 1 — STARTUP (Program.cs)" style="swimlane;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;startSize=28;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="1520" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="s1" value="1. WebApplication.CreateBuilder()" style="rounded=1;fillColor=#ffffff;fontSize=11;" vertex="1" parent="phase1">
+          <mxGeometry x="20" y="45" width="200" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="s2" value="2. AddControllersWithViews()" style="rounded=1;fillColor=#ffffff;fontSize=11;" vertex="1" parent="phase1">
+          <mxGeometry x="240" y="45" width="200" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="s3" value="3. AddRepositories() + đăng ký BusinessLogic&#xa;→ DocumentService, ChatService...&#xa;→ HttpClient: IRagAnswerGenerator, IAiHealthService" style="rounded=1;fillColor=#d5e8d4;fontSize=11;align=left;spacingLeft=6;" vertex="1" parent="phase1">
+          <mxGeometry x="460" y="40" width="280" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="s4" value="4. Khởi tạo DB trong Program.cs&#xa;MigrateAsync() — SQL Server LocalDB&#xa;ConnectionStrings:DefaultConnection" style="rounded=1;fillColor=#ffe6cc;fontSize=11;align=left;spacingLeft=6;" vertex="1" parent="phase1">
+          <mxGeometry x="760" y="40" width="280" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="s5" value="5. AiHealthService.GetStatusAsync()&#xa;Log AI ready / offline" style="rounded=1;fillColor=#e1d5e7;fontSize=11;align=left;spacingLeft=6;" vertex="1" parent="phase1">
+          <mxGeometry x="1060" y="40" width="220" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="s6" value="6. MapControllerRoute default=Documents/Index&#xa;Listen http://localhost:5288" style="rounded=1;fillColor=#dae8fc;fontSize=11;align=left;spacingLeft=6;" vertex="1" parent="phase1">
+          <mxGeometry x="1300" y="40" width="200" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="phase2" value="PHASE 2 — HTTP REQUEST (ví dụ POST /Chat/Send)" style="swimlane;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;startSize=28;" vertex="1" parent="1">
+          <mxGeometry x="40" y="260" width="1520" height="200" as="geometry"/>
+        </mxCell>
+        <mxCell id="r1" value="Browser gửi JSON&#xa;Content-Type: application/json" style="rounded=1;fillColor=#f5f5f5;fontSize=11;" vertex="1" parent="phase2">
+          <mxGeometry x="20" y="45" width="180" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r2" value="Middleware pipeline&#xa;StaticFiles → Routing → Auth" style="rounded=1;fillColor=#ffffff;fontSize=11;" vertex="1" parent="phase2">
+          <mxGeometry x="220" y="45" width="180" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r3" value="ChatController.Send()&#xa;[FromBody] ChatSendRequest&#xa;Validate → gọi IChatService" style="rounded=1;fillColor=#dae8fc;fontSize=11;align=left;spacingLeft=6;" vertex="1" parent="phase2">
+          <mxGeometry x="420" y="40" width="220" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="r4" value="ChatService.SendAsync()&#xa;Intent check → RAG retrieve&#xa;→ Ollama generate → Save DB" style="rounded=1;fillColor=#d5e8d4;fontSize=11;align=left;spacingLeft=6;" vertex="1" parent="phase2">
+          <mxGeometry x="660" y="40" width="240" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="r5" value="AppDbContext&#xa;SaveChangesAsync()" style="rounded=1;fillColor=#ffe6cc;fontSize=11;" vertex="1" parent="phase2">
+          <mxGeometry x="920" y="45" width="160" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r6" value="Ollama HTTP&#xa;POST /v1/chat/completions" style="rounded=1;fillColor=#e1d5e7;fontSize=11;" vertex="1" parent="phase2">
+          <mxGeometry x="1100" y="45" width="180" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="r7" value="return Json(ChatSendResponse)&#xa;HTTP 200 application/json" style="rounded=1;fillColor=#e6ffe6;strokeColor=#009900;fontSize=11;align=left;spacingLeft=6;" vertex="1" parent="phase2">
+          <mxGeometry x="1300" y="40" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="phase3" value="PHASE 3 — BẢNG MÃ HTTP THEO LOẠI REQUEST" style="swimlane;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;startSize=28;" vertex="1" parent="1">
+          <mxGeometry x="40" y="480" width="1520" height="420" as="geometry"/>
+        </mxCell>
+        <mxCell id="ht1" value="GET trang (Index, Upload, Session, Details)&#xa;REQ: query string / route param&#xa;RES: 200 text/html (Razor View + ViewModel/DTO)&#xa;RES: 404 nếu id không tồn tại" style="rounded=1;fillColor=#e6f2ff;strokeColor=#0066CC;align=left;spacingLeft=8;fontSize=11;" vertex="1" parent="phase3">
+          <mxGeometry x="20" y="45" width="720" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="ht2" value="POST form (Upload, Create, Reindex, Delete)&#xa;REQ: multipart/form-data hoặc application/x-www-form-urlencoded&#xa;+ __RequestVerificationToken (AntiForgery)&#xa;RES thành công: 302 Redirect + TempData&#xa;RES lỗi: 200 HTML + ModelState errors" style="rounded=1;fillColor=#e6f2ff;strokeColor=#0066CC;align=left;spacingLeft=8;fontSize=11;" vertex="1" parent="phase3">
+          <mxGeometry x="760" y="45" width="740" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="ht3" value="POST JSON API (Send, Enroll, ChaptersBySubject)&#xa;REQ: application/json body (DTO)&#xa;RES: 200 application/json (DTO)&#xa;RES: 400 { error: &quot;message&quot; }" style="rounded=1;fillColor=#0066CC;fontColor=#ffffff;align=left;spacingLeft=8;fontSize=11;fontStyle=1;" vertex="1" parent="phase3">
+          <mxGeometry x="20" y="150" width="720" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="ht4" value="GET Download&#xa;REQ: /Documents/Download/{id}&#xa;RES: 200 FileStream (Content-Disposition: attachment)&#xa;Content-Type theo file gốc | 404" style="rounded=1;fillColor=#e6ffe6;strokeColor=#009900;align=left;spacingLeft=8;fontSize=11;" vertex="1" parent="phase3">
+          <mxGeometry x="760" y="150" width="740" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="ht5" value="TẤT CẢ ENDPOINT" style="text;html=1;fontStyle=1;fontSize=12;" vertex="1" parent="phase3">
+          <mxGeometry x="20" y="250" width="200" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="ht6" value="/Documents (GET) | /Documents/Upload (GET/POST) | /Documents/Details/{id} (GET)&#xa;/Documents/Reindex/{id} (POST) | /Documents/Download/{id} (GET) | /Documents/ChaptersBySubject?subjectId= (GET JSON)&#xa;/Chat/Index (GET) | /Chat/Create (POST) | /Chat/Session/{id} (GET) | /Chat/Send (POST JSON)&#xa;/Chat/Enroll (POST JSON) | /Chat/Delete/{id} (POST) | /Home/Index (GET) | /Home/Error (GET)" style="rounded=1;fillColor=#ffffff;align=left;spacingLeft=8;fontFamily=Courier New;fontSize=10;" vertex="1" parent="phase3">
+          <mxGeometry x="20" y="280" width="1480" height="110" as="geometry"/>
         </mxCell>
       </root>
     </mxGraphModel>

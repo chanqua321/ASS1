@@ -1,5 +1,4 @@
 @model Web.ViewModels.DocumentListViewModel
-@using Model.Enums
 @{
     ViewData["Title"] = "Kho tài liệu";
 }
@@ -7,15 +6,29 @@
 <div class="page-header d-flex flex-wrap justify-content-between align-items-end gap-3">
     <div>
         <h1><i class="bi bi-folder2-open me-2" style="font-size:.9em;vertical-align:middle;background:linear-gradient(135deg,var(--c-indigo-light),var(--c-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></i>Kho Tài Liệu</h1>
-        <p class="page-subtitle">Quản lý bài học đã tải lên, theo dõi trạng thái xử lý và tải xuống.</p>
+        <p class="page-subtitle">
+            @if (User.IsInRole("Teacher"))
+            {
+                <text>Tài liệu các môn bạn phụ trách — mỗi chương hiển thị bản mới nhất.</text>
+            }
+            else
+            {
+                <text>Quản lý bài học đã tải lên, theo dõi trạng thái xử lý và tải xuống.</text>
+            }
+        </p>
     </div>
     <div class="page-header-actions">
-        <a asp-action="Upload" class="btn btn-primary">
-            <i class="bi bi-cloud-upload me-1"></i> Upload tài liệu mới
-        </a>
+        @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Teacher"))
+        {
+            @* UI: nút "Upload tài liệu mới" → GET /Documents/Upload → DocumentsController.Upload (HttpGet) *@
+            <a asp-action="Upload" class="btn btn-primary">
+                <i class="bi bi-cloud-upload me-1"></i> Upload tài liệu mới
+            </a>
+        }
     </div>
 </div>
 
+@* UI: filter form (GET /Documents?subjectId=...) → DocumentsController.Index *@
 <form method="get" class="filter-bar row g-3 align-items-end mb-4">
     <div class="col-md-5">
         <label class="form-label"><i class="bi bi-funnel me-1"></i> Lọc theo môn học</label>
@@ -48,6 +61,7 @@
                     <th><i class="bi bi-book me-1"></i>Môn học</th>
                     <th>Chương</th>
                     <th><i class="bi bi-layers me-1"></i>Chunk</th>
+                    <th><i class="bi bi-stars me-1"></i>Tóm tắt AI</th>
                     <th>Trạng thái</th>
                     <th><i class="bi bi-calendar3 me-1"></i>Ngày upload</th>
                     <th></th>
@@ -57,14 +71,21 @@
             @if (!Model.Documents.Any())
             {
                 <tr>
-                    <td colspan="8" class="p-0 border-0">
+                    <td colspan="9" class="p-0 border-0">
                         <div class="empty-state">
                             <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
                             <p class="fw-semibold mb-1">Chưa có tài liệu nào</p>
-                            <p class="small mb-4">Upload file đầu tiên để bắt đầu hỏi đáp trên chat AI.</p>
-                            <a asp-action="Upload" class="btn btn-primary">
-                                <i class="bi bi-cloud-upload me-1"></i> Upload ngay
-                            </a>
+                            <p class="small mb-4">
+                                @(User.Identity?.IsAuthenticated == true && User.IsInRole("Teacher")
+                                    ? "Upload file đầu tiên để bắt đầu hỏi đáp trên chat AI."
+                                    : "Chưa có tài liệu nào được giáo viên upload. Vui lòng quay lại sau hoặc vào Chat để hỏi khi đã có tài liệu.")
+                            </p>
+                            @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Teacher"))
+                            {
+                                <a asp-action="Upload" class="btn btn-primary">
+                                    <i class="bi bi-cloud-upload me-1"></i> Upload ngay
+                                </a>
+                            }
                         </div>
                     </td>
                 </tr>
@@ -87,34 +108,42 @@
                             <i class="bi @iconClass me-2 text-primary"></i>
                             @doc.FileName
                         </td>
-                        <td><span class="badge bg-light">@doc.FileType</span></td>
+                        <td><span class="badge bg-light">@doc.FileTypeLabel</span></td>
                         <td>
-                            <span style="color:var(--c-indigo-light);font-weight:500;">@doc.SubjectName</span>
+                            <span style="color:var(--c-indigo-light);font-weight:500;">@doc.SubjectDisplay</span>
                         </td>
                         <td class="text-muted" style="font-size:.88rem;">@(doc.ChapterTitle ?? "—")</td>
                         <td>
                             <span class="badge bg-primary">@doc.ChunkCount</span>
                         </td>
-                        <td>
-                            @{
-                                var (bgClass, icon) = doc.Status switch {
-                                    DocumentStatus.Indexed    => ("bg-success", "bi-check-circle-fill"),
-                                    DocumentStatus.Processing => ("bg-warning", "bi-hourglass-split"),
-                                    DocumentStatus.Failed     => ("bg-danger",  "bi-x-circle-fill"),
-                                    _                         => ("bg-secondary","bi-clock")
-                                };
+                        <td class="text-muted" style="font-size:.82rem;max-width:220px;">
+                            @if (doc.HasSummary)
+                            {
+                                <span title="@doc.Summary">@doc.SummaryPreview</span>
                             }
-                            <span class="badge @bgClass">
-                                <i class="bi @icon me-1"></i>@doc.Status
+                            else if (doc.IsIndexed)
+                            {
+                                <span class="fst-italic opacity-75">Đang tạo / chưa có</span>
+                            }
+                            else
+                            {
+                                <span>—</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge @doc.StatusBadgeClass">
+                                <i class="bi @doc.StatusIcon me-1"></i>@doc.StatusLabel
                             </span>
                         </td>
                         <td class="text-muted" style="font-size:.82rem;white-space:nowrap;">
                             @doc.UploadedAt.ToLocalTime().ToString("g")
                         </td>
                         <td class="text-nowrap">
+                            @* UI: "Chi tiết" → GET /Documents/Details/{id} *@
                             <a asp-action="Details" asp-route-id="@doc.Id" class="btn btn-sm btn-link">
                                 <i class="bi bi-eye me-1"></i>Chi tiết
                             </a>
+                            @* UI: icon download → GET /Documents/Download/{id} *@
                             <a asp-action="Download" asp-route-id="@doc.Id" class="btn btn-sm btn-outline-primary ms-1" title="Tải xuống">
                                 <i class="bi bi-download"></i>
                             </a>

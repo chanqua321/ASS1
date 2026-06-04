@@ -28,6 +28,8 @@ artifacts/
 # ASP.NET
 **/App_Data/uploads/*
 !**/App_Data/uploads/.gitkeep
+**/App_Data/*.db
+**/App_Data/*.db-*
 
 # OS
 Thumbs.db

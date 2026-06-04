@@ -1,0 +1,57 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0 Calibri;}}
+\fs28\b Business Roles (RBAC) \u8212? EduAI (Assigment1)\b0\par
+\fs22\par
+\b M\u7909?c \u273?ch\b0 : M\u244? t\u7843? vai tr\u242? nghi\u7879?p v\u7909? (Admin/Teacher/Student) theo \u273?ng code hi\u7879?n t\u7841?i.\par
+\par
+\b 1) C\u225?c vai tr\u242?\b0\par
+\pard\li360
+\b Admin\b0 : Qu\u7843?n l\u253? user; l\u224? ng\u432?\u7901?i duy nh\u7845?t t\u7841?o Teacher; g\u225?n Teacher cho m\u244?n (m\u7895?i m\u244?n 1 teacher).\par
+\b Teacher\b0 : Upload/Reindex t\u224?i li\u7879?u \u273?\u7875? ph\u7909?c v\u7909? Chat (theo m\u244?n ph\u7909? tr\u225?ch).\par
+\b Student\b0 : Ch\u7881? xem/t\u7843?i t\u224?i li\u7879?u v\u224? chat; kh\u244?ng th\u7845?y v\u224? kh\u244?ng truy c\u7853?p Upload/Reindex.\par
+\pard\li0\par
+\b 2) \u272?\u259?ng nh\u7853?p / \u272?\u259?ng k\u253?\b0\par
+\pard\li360
+\b Login\b0 : GET/POST /Account/Login. Khi th\u224?nh c\u244?ng t\u7841?o cookie claim: NameIdentifier=userId, Name=username, Role=Admin/Teacher/Student.\par
+\b Register\b0 : GET/POST /Account/Register. Ch\u7881? \u273?\u259?ng k\u253? Student. Teacher kh\u244?ng t\u7921? \u273?\u259?ng k\u253?.\par
+\pard\li0\par
+\b 3) Seed t\u224?i kho\u7843?n demo (t\u7841?o trong DB)\b0\par
+\pard\li360
+H\u7879? th\u7889?ng t\u7921? t\u7841?o n\u7871?u ch\u432?a c\u243?:\par
+admin / 123 \u8594? Admin\par
+teacher / 123 \u8594? Teacher\par
+student / 123 \u8594? Student\par
+\pard\li0\par
+\b 4) Quy\u7873?n truy c\u7853?p theo ch\u7913?c n\u259?ng (Endpoints)\b0\par
+\b 4.1) Documents (WF1)\b0\par
+\pard\li360
+GET /Documents (Index): Authenticated (t\u7845?t c\u7843? role)\par
+GET /Documents/Details/{id}: Authenticated\par
+GET /Documents/Download/{id}: Authenticated\par
+GET/POST /Documents/Upload: TeacherOnly\par
+POST /Documents/Reindex/{id}: TeacherOnly\par
+GET /Documents/ChaptersBySubject: TeacherOnly\par
+\pard\li0\par
+\b 4.2) Chat (WF2)\b0\par
+\pard\li360
+GET /Chat, POST /Chat/Create, GET /Chat/Session/{id}, POST /Chat/Send, POST /Chat/Enroll, POST /Chat/Delete\par
+Quy\u7873?n: Authenticated (Admin/Teacher/Student \u273?\u7873?u chat \u273?\u432?\u7907?c)\par
+\pard\li0\par
+\b 5) Admin quản lý user + tạo Teacher\b0\par
+\pard\li360
+GET /AdminUsers: Ch\u7881? Admin\par
+GET/POST /AdminUsers/CreateTeacher: Ch\u7881? Admin; rule: m\u7895?i m\u244?n ch\u7881? 1 teacher\par
+\pard\li0\par
+\b 6) Quy tắc “mỗi môn 1 teacher”\b0\par
+\pard\li360
+Entity Subject c\u243? TeacherUserId + TeacherUser. Admin g\u225?n teacher cho m\u244?n.\par
+\pard\li0\par
+\b 7) UI theo role\b0\par
+\pard\li360
+Student kh\u244?ng th\u7845?y Upload tr\u234?n navbar/home/documents; backend v\u7851?n ch\u7863?n b\u7857?ng [Authorize(Policy=\u8220TeacherOnly\u8221)].\par
+\pard\li0\par
+\b 8) Bảo mật\b0\par
+\pard\li360
+Role \u273?\u432?\u7907?c x\u225?c th\u7921?c t\u7915? cookie claim (kh\u244?ng tin client). M\u7853?t kh\u7849?u l\u432?u hash PBKDF2.\par
+}
+

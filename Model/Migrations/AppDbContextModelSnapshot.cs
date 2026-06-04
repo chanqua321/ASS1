@@ -22,6 +22,81 @@ namespace Model.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Model.Entities.AppUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("AppUsers");
+                });
+
+            modelBuilder.Entity("Model.Entities.AuditLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Detail")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("AuditLogs");
+                });
+
             modelBuilder.Entity("Model.Entities.Chapter", b =>
                 {
                     b.Property<int>("Id")
@@ -46,29 +121,6 @@ namespace Model.Migrations
                     b.HasIndex("SubjectId");
 
                     b.ToTable("Chapters");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            OrderNumber = 1,
-                            SubjectId = 1,
-                            Title = "Chương 1: Giới thiệu"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            OrderNumber = 2,
-                            SubjectId = 1,
-                            Title = "Chương 2: MVC & EF Core"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            OrderNumber = 1,
-                            SubjectId = 2,
-                            Title = "Chương 1: Khởi động dự án"
-                        });
                 });
 
             modelBuilder.Entity("Model.Entities.ChatMessage", b =>
@@ -173,6 +225,13 @@ namespace Model.Migrations
                     b.Property<int>("SubjectId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Summary")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime?>("SummaryGeneratedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("datetime2");
 
@@ -248,6 +307,36 @@ namespace Model.Migrations
                     b.ToTable("DocumentEmbeddings");
                 });
 
+            modelBuilder.Entity("Model.Entities.DocumentQuiz", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DocumentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("QuestionsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DocumentId", "CreatedAt");
+
+                    b.ToTable("DocumentQuizzes");
+                });
+
             modelBuilder.Entity("Model.Entities.MessageCitation", b =>
                 {
                     b.Property<int>("Id")
@@ -309,28 +398,17 @@ namespace Model.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int?>("TeacherUserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Subjects");
+                    b.HasIndex("TeacherUserId");
 
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Code = "PRN222",
-                            Description = "ASP.NET Core",
-                            Name = "Building Cross-Platform Back-End"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Code = "SWP391",
-                            Description = "Capstone",
-                            Name = "Software Project"
-                        });
+                    b.ToTable("Subjects");
                 });
 
             modelBuilder.Entity("Model.Entities.SubjectEnrollment", b =>
@@ -363,6 +441,35 @@ namespace Model.Migrations
                         .IsUnique();
 
                     b.ToTable("SubjectEnrollments");
+                });
+
+            modelBuilder.Entity("Model.Entities.UserLoginHistory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("LoggedInAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "LoggedInAt");
+
+                    b.ToTable("UserLoginHistories");
                 });
 
             modelBuilder.Entity("Model.Entities.Chapter", b =>
@@ -437,6 +544,25 @@ namespace Model.Migrations
                     b.Navigation("Chunk");
                 });
 
+            modelBuilder.Entity("Model.Entities.DocumentQuiz", b =>
+                {
+                    b.HasOne("Model.Entities.AppUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Model.Entities.Document", "Document")
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Document");
+                });
+
             modelBuilder.Entity("Model.Entities.MessageCitation", b =>
                 {
                     b.HasOne("Model.Entities.ChatMessage", "Message")
@@ -448,6 +574,16 @@ namespace Model.Migrations
                     b.Navigation("Message");
                 });
 
+            modelBuilder.Entity("Model.Entities.Subject", b =>
+                {
+                    b.HasOne("Model.Entities.AppUser", "TeacherUser")
+                        .WithMany()
+                        .HasForeignKey("TeacherUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("TeacherUser");
+                });
+
             modelBuilder.Entity("Model.Entities.SubjectEnrollment", b =>
                 {
                     b.HasOne("Model.Entities.Subject", "Subject")
@@ -457,6 +593,17 @@ namespace Model.Migrations
                         .IsRequired();
 
                     b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("Model.Entities.UserLoginHistory", b =>
+                {
+                    b.HasOne("Model.Entities.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Model.Entities.Chapter", b =>
