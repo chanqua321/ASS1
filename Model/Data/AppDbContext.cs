@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Model.Configuration;
 using Model.Entities;
 using Model.Data.Seed;
 using Model.Repository;
@@ -215,10 +214,11 @@ public static class AppDbContextServiceExtensions
 {
     public static IServiceCollection AddDataLayer(this IServiceCollection services, string connectionString)
     {
-        var validated = SqlConnectionDefaults.RequireSaSqlAuthentication(connectionString);
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new ArgumentException("Connection string is required.", nameof(connectionString));
 
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(validated, sql =>
+            options.UseSqlServer(connectionString.Trim(), sql =>
                 sql.MigrationsAssembly(typeof(AppDbContext).Assembly.GetName().Name)));
 
         services.AddRepositories();
@@ -231,7 +231,7 @@ public sealed class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbConte
 {
     public AppDbContext CreateDbContext(string[] args)
     {
-        var connectionString = SqlConnectionDefaults.RequireSaSqlAuthentication(ResolveConnectionString());
+        var connectionString = ResolveConnectionString();
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlServer(connectionString, sql =>
                 sql.MigrationsAssembly(typeof(AppDbContext).Assembly.GetName().Name))

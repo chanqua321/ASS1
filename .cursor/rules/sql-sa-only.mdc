@@ -1,15 +1,12 @@
 ---
-description: SQL Server — chỉ đăng nhập sa / 12345 (LocalDB)
+description: SQL Server — connection string trong appsettings
 alwaysApply: true
 ---
 
-# SQL Server — chỉ `sa` / `12345`
+# SQL Server
 
-- **Một** connection string chuẩn: `Model.Configuration.SqlConnectionDefaults`
-- App + `dotnet ef` + script `sqlcmd` đều dùng **User Id=sa; Password=12345**
-- **Cấm** `Trusted_Connection`, `Integrated Security`, login SQL khác
-- `Program.cs` và `AppDbContextFactory` (design-time) gọi `RequireSaSqlAuthentication()` — sai → crash lúc start/EF
+- Chuỗi kết nối: `ConnectionStrings:DefaultConnection` trong `Web/appsettings.json` (và `Model/appsettings.json` cho `dotnet ef`).
+- App (`Program.cs`) và `AppDbContextFactory` đọc trực tiếp từ config — không hard-code riêng trong C#.
+- Script `sqlcmd`: `scripts/_sql-config.cmd` (khớp server/database/login trong appsettings).
 
-SSMS: Server `(localdb)\MSSQLLocalDB`, Authentication **SQL Server**, Login `sa`, Password `12345`, DB `Assigment1DocDb`.
-
-Script `enable-sa-localdb.cmd` chỉ dùng Windows auth **một lần** để bật login `sa` — không phải luồng app.
+SSMS: theo `Server` và `Database` trong appsettings; dùng SQL authentication nếu connection string có `User Id` / `Password`.

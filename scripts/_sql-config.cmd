@@ -1,5 +1,5 @@
 @echo off
-rem Shared SQL settings — phải khớp Model/Configuration/SqlConnectionDefaults.cs
+rem Shared SQL settings — khớp ConnectionStrings:DefaultConnection trong appsettings
 rem Chi enable-sa-localdb.cmd dung Windows auth (-E) de BAT LOGIN sa; app/script data dung sa/12345.
 set "SQLSERVER=(localdb)\MSSQLLocalDB"
 set "SQLDATABASE=Assigment1DocDb"
