@@ -36,7 +36,8 @@ if ($FullDatabaseReset) {
 }
 
 Write-Host "`n=== Xóa bản ghi tài liệu & chat trong DB ===" -ForegroundColor Cyan
-$conn = "Server=(localdb)\MSSQLLocalDB;Database=Assigment1DocDb;Trusted_Connection=True;TrustServerCertificate=True"
+. "$PSScriptRoot\sql-sa-config.ps1"
+$conn = Get-SqlSaConnectionString
 $sql = @"
 DELETE FROM MessageCitations;
 DELETE FROM ChatMessages;

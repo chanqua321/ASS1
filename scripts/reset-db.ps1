@@ -20,4 +20,5 @@ Write-Host "Cleaning data (keep admin only) ..."
 & (Join-Path $repoRoot "scripts\clean-keep-admin.ps1")
 
 Write-Host "Done. Login: admin@gmail.com / 123"
+Write-Host "Neu loi login sa: chay (Admin) .\scripts\enable-sa-localdb.ps1" -ForegroundColor Yellow
 

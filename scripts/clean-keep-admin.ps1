@@ -27,15 +27,14 @@ DELETE FROM Subjects;
 DELETE FROM AppUsers WHERE Email <> N'admin@gmail.com';
 "@
 
-$server = "(localdb)\MSSQLLocalDB"
-$database = "Assigment1DocDb"
+. "$PSScriptRoot\sql-sa-config.ps1"
 
 Write-Host "=== Lam sach database (chi giu admin) ===" -ForegroundColor Cyan
 
 if (Get-Command sqlcmd -ErrorAction SilentlyContinue) {
-    sqlcmd -S $server -d $database -Q $sql -b
+    sqlcmd -S $SqlSaServer -d $SqlSaDatabase -U $SqlSaUser -P $SqlSaPassword -C -Q $sql -b
 } elseif (Get-Command Invoke-Sqlcmd -ErrorAction SilentlyContinue) {
-    $conn = "Server=$server;Database=$database;Trusted_Connection=True;TrustServerCertificate=True"
+    $conn = Get-SqlSaConnectionString
     Invoke-Sqlcmd -ConnectionString $conn -Query $sql
 } else {
     Write-Host "Khong tim thay sqlcmd/Invoke-Sqlcmd. Chay: .\scripts\reset-db.ps1 roi apply migration RemoveDefaultSubjectSeed" -ForegroundColor Yellow
