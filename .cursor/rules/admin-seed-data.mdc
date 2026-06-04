@@ -1,0 +1,11 @@
+---
+description: Admin seed Code First HasData — AppUserSeed.GetUsers()
+alwaysApply: true
+---
+
+# Admin seed (HasData — giống RoleSeed)
+
+- `Model/Data/Seed/AppUserSeed.cs` — `GetUsers()` trả `AppUser[]` (Id=1, admin@gmail.com, 12345).
+- `AppDbContext.OnModelCreating` → `modelBuilder.Entity<AppUser>().HasData(AppUserSeed.GetUsers())`.
+- Migration: `dotnet ef migrations add` → `InsertData` khi `database update`.
+- **Không** seed Admin runtime qua Service/JSON/SQL thô.

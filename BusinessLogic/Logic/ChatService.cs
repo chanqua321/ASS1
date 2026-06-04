@@ -153,7 +153,11 @@ public class ChatService : IChatService
             session.Id, userMessage.Id, _options.MaxHistoryMessages, cancellationToken);
 
         var recentConversation = history
-            .Select(m => $"{m.Role}: {m.Content}")
+            .Select(m => new ChatHistoryTurnDto
+            {
+                Role = m.Role == ChatMessageRole.User ? "user" : "assistant",
+                Content = m.Content
+            })
             .ToList();
 
         // Detect câu hỏi tóm tắt để dùng đường retrieve/summary riêng.

@@ -1,10 +1,6 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
 using Model.Data;
-using Model.IRepository;
-using Model.IUnitOfWork;
-using Model.Repository;
 using BusinessLogic.IBusinessLogic;
 using BusinessLogic.Options;
 using BusinessLogic.Logic;
@@ -12,10 +8,6 @@ using BusinessLogic.Logic;
 // ═══════════════════════════════════════════════════════════════
 
 var builder = WebApplication.CreateBuilder(args);
-
-// --- appsettings: database ---
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found in appsettings.");
 var contentRoot = builder.Environment.ContentRootPath;
 
 builder.Services.AddControllersWithViews();
@@ -35,14 +27,10 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("TeacherOnly", policy => policy.RequireRole("Teacher"));
 });
 
-// --- Model: DbContext + Repository ---
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseSqlServer(connectionString, sql =>
-        sql.MigrationsAssembly(typeof(AppDbContext).Assembly.GetName().Name));
-});
-
-builder.Services.AddRepositories();
+// --- Model: một AppDbContext duy nhất + Repository ---
+builder.Services.AddDataLayer(
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found in appsettings."));
 
 // --- BusinessLogic: Controller → IBusinessLogic → IRepository ---
 builder.Services.Configure<DocumentStorageOptions>(options =>
@@ -77,18 +65,15 @@ builder.Services.AddHttpClient<IQuizService, QuizService>(client =>
 
 var app = builder.Build();
 
-// --- Khởi tạo DB lần đầu khi app chạy ---
+// --- Khởi tạo DB (Code First migrate + HasData seed Admin) ---
 using (var scope = app.Services.CreateScope())
 {
     var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Database");
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    logger.LogInformation("Database provider: SqlServer");
 
     try
     {
         await TryStartLocalDbAsync(logger);
-        await db.Database.MigrateAsync();
-        logger.LogInformation("Database migrated successfully (SqlServer).");
+        await AppDbContext.MigrateAsync(app.Services);
     }
     catch (SqlException ex)
     {
@@ -97,7 +82,6 @@ using (var scope = app.Services.CreateScope())
         throw;
     }
 
-    // Kiểm tra Ollama (Chat AI) — chỉ log, không chặn app
     var aiLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Chat");
     var aiHealth = scope.ServiceProvider.GetRequiredService<IAiHealthService>();
     var aiStatus = await aiHealth.GetStatusAsync();
@@ -107,13 +91,6 @@ using (var scope = app.Services.CreateScope())
         aiLogger.LogWarning("AI chưa sẵn sàng: {Message}", aiStatus.Message);
     else
         aiLogger.LogInformation("Chat mode: {Message}", aiStatus.Message);
-}
-
-// Seed users lần đầu (teacher/student demo)
-using (var scope = app.Services.CreateScope())
-{
-    var auth = scope.ServiceProvider.GetRequiredService<IAuthService>();
-    await auth.EnsureSeedUsersAsync();
 }
 
 if (!app.Environment.IsDevelopment())

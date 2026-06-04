@@ -19,7 +19,5 @@ public interface IAuthService
         string email,
         string password,
         CancellationToken cancellationToken = default);
-
-    Task EnsureSeedUsersAsync(CancellationToken cancellationToken = default);
 }
 

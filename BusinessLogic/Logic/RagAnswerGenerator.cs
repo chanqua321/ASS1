@@ -35,7 +35,7 @@ public class RagAnswerGenerator : IRagAnswerGenerator
     public async Task<(string Answer, bool FromDocuments)> GenerateAsync(
         string question,
         IReadOnlyList<RetrievedChunkDto> chunks,
-        IReadOnlyList<string> recentConversation,
+        IReadOnlyList<ChatHistoryTurnDto> recentConversation,
         bool includeCitationHints = false,
         bool isSummaryQuestion = false,
         CancellationToken cancellationToken = default)
@@ -54,7 +54,12 @@ public class RagAnswerGenerator : IRagAnswerGenerator
             : RagChunkSelector.Select(question, chunks, _rag);
 
         if (isSummaryQuestion && relevant.Count > 0)
+        {
+            if (RagAnswerSanitizer.AreChunksOnlyPlaceholders(relevant))
+                return (RagAnswerSanitizer.BuildPlaceholderAwareMessage(relevant), true);
+
             return await GenerateSummaryAsync(question, relevant, recentConversation, includeCitationHints, cancellationToken);
+        }
 
         if (_ai.Enabled && _ai.IsRemoteAiConfigured())
         {
@@ -63,7 +68,7 @@ public class RagAnswerGenerator : IRagAnswerGenerator
                 // Thành công: answer từ AI (có thể dựa vào context chunk)
                 var answer = await CallChatCompletionsAsync(
                     question, relevant, recentConversation, includeCitationHints, isSummaryQuestion, cancellationToken);
-                return (answer, true);
+                return (RagAnswerSanitizer.SanitizeAiAnswer(answer, relevant.Count > 0), true);
             }
             catch (Exception ex)
             {
@@ -78,7 +83,7 @@ public class RagAnswerGenerator : IRagAnswerGenerator
     private async Task<(string Answer, bool FromDocuments)> GenerateSummaryAsync(
         string question,
         IReadOnlyList<RetrievedChunkDto> relevant,
-        IReadOnlyList<string> recentConversation,
+        IReadOnlyList<ChatHistoryTurnDto> recentConversation,
         bool includeCitationHints,
         CancellationToken cancellationToken)
     {
@@ -93,7 +98,7 @@ public class RagAnswerGenerator : IRagAnswerGenerator
                     includeCitationHints,
                     isSummary: true,
                     cancellationToken);
-                return (StripSummaryBoilerplate(answer), true);
+                return (RagAnswerSanitizer.SanitizeAiAnswer(StripSummaryBoilerplate(answer), relevant.Count > 0), true);
             }
             catch (Exception ex)
             {
@@ -144,7 +149,7 @@ public class RagAnswerGenerator : IRagAnswerGenerator
     private async Task<string> CallChatCompletionsAsync(
         string question,
         IReadOnlyList<RetrievedChunkDto> relevant,
-        IReadOnlyList<string> recentConversation,
+        IReadOnlyList<ChatHistoryTurnDto> recentConversation,
         bool includeCitationHints,
         bool isSummary,
         CancellationToken cancellationToken)
@@ -164,9 +169,18 @@ public class RagAnswerGenerator : IRagAnswerGenerator
             ? "TÓM TẮT khoảng 100–300 từ (tiếng Việt): 2-3 câu mở đầu + 4-6 bullet ý chính + 1 câu kết. Không nhắc Ollama/hệ thống, không ghi chú _(Còn X đoạn...)_. "
             : "";
 
+        var hadContext = relevant.Count > 0;
+        var contextRule = hadContext
+            ? "Tài liệu đã có trong NGỮ CẢNH (giáo viên đã upload). TUYỆT ĐỐI không yêu cầu người dùng upload/tải file trong chat; không nói 'không có file', 'chưa tải file', 'không thể tải lên'. "
+            : "";
+
         var systemPrompt = isSummary
-            ? "Bạn là trợ lý học tập. Trả lời tiếng Việt ngắn gọn, dựa chỉ vào NGỮ CẢNH. " + taskRule
+            ? "Bạn là trợ lý học tập. Trả lời tiếng Việt ngắn gọn, CHỈ dựa vào NGỮ CẢNH. " +
+              contextRule +
+              "Không bịa ý chính nếu ngữ cảnh chỉ là ghi chú kỹ thuật hoặc quá ngắn — nói thẳng là chưa đủ nội dung. " +
+              taskRule
             : "Bạn là trợ lý học tập thân thiện. Trả lời bằng tiếng Việt tự nhiên, dễ nghe, tránh thuật ngữ kỹ thuật (không dùng RAG, index, hệ thống...). " +
+              contextRule +
               taskRule +
               "Chỉ dựa vào phần NGỮ CẢNH TÀI LIỆU bên dưới; không bịa thêm. " +
               "Nếu thiếu thông tin, nói nhẹ nhàng kiểu: \"Trong tài liệu hiện có mình chưa thấy phần này, bạn thử hỏi cụ thể hơn nhé.\" " +
@@ -176,8 +190,13 @@ public class RagAnswerGenerator : IRagAnswerGenerator
 
         if (!isSummary)
         {
-            foreach (var line in recentConversation.TakeLast(4))
-                messages.Add(new { role = "user", content = line });
+            foreach (var turn in recentConversation.TakeLast(4))
+            {
+                var role = string.Equals(turn.Role, "assistant", StringComparison.OrdinalIgnoreCase)
+                    ? "assistant"
+                    : "user";
+                messages.Add(new { role, content = turn.Content });
+            }
         }
 
         messages.Add(new

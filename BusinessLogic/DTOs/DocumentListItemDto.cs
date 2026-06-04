@@ -25,4 +25,6 @@ public class DocumentListItemDto
     public DateTime? SummaryGeneratedAt { get; set; }
     public string? SummaryPreview { get; set; }
     public bool HasSummary => !string.IsNullOrWhiteSpace(Summary);
+    /// <summary>False khi chunk chỉ là ghi chú PPTX/placeholder — chat RAG không dùng được.</summary>
+    public bool HasSearchableText { get; set; } = true;
 }

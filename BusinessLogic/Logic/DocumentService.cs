@@ -328,7 +328,8 @@ public class DocumentService : IDocumentService
             ProcessedAt = d.ProcessedAt,
             Summary = d.Summary,
             SummaryGeneratedAt = d.SummaryGeneratedAt,
-            SummaryPreview = BuildSummaryPreview(d.Summary)
+            SummaryPreview = BuildSummaryPreview(d.Summary),
+            HasSearchableText = RagAnswerSanitizer.DocumentHasSearchableText(d.Chunks.Select(c => c.Content))
         };
     }
 

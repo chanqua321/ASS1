@@ -31,6 +31,9 @@ public static class RagChunkSelector
         if (relevant.Count == 0)
             return (NoRelevantChunksMessage, false);
 
+        if (RagAnswerSanitizer.AreChunksOnlyPlaceholders(relevant))
+            return (RagAnswerSanitizer.BuildPlaceholderAwareMessage(relevant), true);
+
         if (IsDocumentInventoryQuestion(question))
             return (BuildInventoryAnswer(relevant), true);
 

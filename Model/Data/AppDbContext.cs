@@ -1,8 +1,16 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Model.Configuration;
 using Model.Entities;
+using Model.Data.Seed;
+using Model.Repository;
 
 namespace Model.Data;
 
+/// <summary>DbContext duy nhất của solution — đăng ký DI, migrate và design-time EF đều qua type này.</summary>
 public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
@@ -22,6 +30,22 @@ public class AppDbContext : DbContext
     public DbSet<UserLoginHistory> UserLoginHistories => Set<UserLoginHistory>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<DocumentQuiz> DocumentQuizzes => Set<DocumentQuiz>();
+
+    /// <summary>Chạy migration qua instance <see cref="AppDbContext"/> đã đăng ký DI.</summary>
+    public static async Task MigrateAsync(
+        IServiceProvider serviceProvider,
+        CancellationToken cancellationToken = default)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var logger = scope.ServiceProvider
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger(nameof(AppDbContext));
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        logger.LogInformation("Database provider: SqlServer ({Context})", nameof(AppDbContext));
+        await db.Database.MigrateAsync(cancellationToken);
+        logger.LogInformation("Database migrated successfully (User Id=sa).");
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -177,5 +201,71 @@ public class AppDbContext : DbContext
                 .HasForeignKey(x => x.CreatedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        modelBuilder.Entity<AppUser>().HasData(AppUserSeed.GetUsers());
+    }
+}
+
+/// <summary>Đăng ký <see cref="AppDbContext"/> + Repository (extension cho <c>builder.Services.AddDataLayer</c>).</summary>
+public static class AppDbContextServiceExtensions
+{
+    public static IServiceCollection AddDataLayer(this IServiceCollection services, string connectionString)
+    {
+        var validated = SqlConnectionDefaults.RequireSaSqlAuthentication(connectionString);
+
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlServer(validated, sql =>
+                sql.MigrationsAssembly(typeof(AppDbContext).Assembly.GetName().Name)));
+
+        services.AddRepositories();
+        return services;
+    }
+}
+
+/// <summary>Design-time factory cho <c>dotnet ef</c> — cùng file với <see cref="AppDbContext"/>.</summary>
+public sealed class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
+{
+    public AppDbContext CreateDbContext(string[] args)
+    {
+        var connectionString = SqlConnectionDefaults.RequireSaSqlAuthentication(ResolveConnectionString());
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlServer(connectionString, sql =>
+                sql.MigrationsAssembly(typeof(AppDbContext).Assembly.GetName().Name))
+            .Options;
+        return new AppDbContext(options);
+    }
+
+    private static string ResolveConnectionString()
+    {
+        foreach (var basePath in GetConfigurationBasePaths())
+        {
+            if (!Directory.Exists(basePath))
+                continue;
+
+            var config = new ConfigurationBuilder()
+                .SetBasePath(basePath)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+                .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: false)
+                .AddEnvironmentVariables()
+                .Build();
+
+            var cs = config.GetConnectionString("DefaultConnection");
+            if (!string.IsNullOrWhiteSpace(cs))
+                return cs;
+        }
+
+        throw new InvalidOperationException(
+            "Không tìm thấy ConnectionStrings:DefaultConnection. " +
+            "Đặt trong Model/appsettings.json hoặc Web/appsettings.json.");
+    }
+
+    private static IEnumerable<string> GetConfigurationBasePaths()
+    {
+        var cwd = Directory.GetCurrentDirectory();
+        yield return cwd;
+        yield return Path.GetFullPath(Path.Combine(cwd, "Model"));
+        yield return Path.GetFullPath(Path.Combine(cwd, "..", "Model"));
+        yield return Path.GetFullPath(Path.Combine(cwd, "Web"));
+        yield return Path.GetFullPath(Path.Combine(cwd, "..", "Web"));
     }
 }

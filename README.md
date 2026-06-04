@@ -150,12 +150,13 @@ Override dev: `Web/appsettings.Development.json` (thêm log EF Core).
 
 ```json
 "ConnectionStrings": {
-  "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=Assigment1DocDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
+  "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=Assigment1DocDb;User Id=sa;Password=12345;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
 }
 ```
 
 - **Bắt buộc** key `DefaultConnection` — thiếu → `InvalidOperationException` khi build app.
-- Đổi server: sửa `Server=...` (SQL Express, Azure SQL, v.v.).
+- **Bắt buộc** `User Id=sa; Password=12345` — không dùng Windows/Trusted Connection.
+- Đổi server: sửa `Server=...` (giữ sa/12345).
 - Sau đổi DB: có thể cần `dotnet ef database update` hoặc để app tự `MigrateAsync()`.
 
 ### 4.2 Lưu trữ file
@@ -241,7 +242,7 @@ Thứ tự khi app start:
 4. `Configure` `DocumentStorageOptions`, `RagChatOptions`, `AiModelOptions`.
 5. Đăng ký scoped services + `HttpClient` (RAG 90s, AI health 5s, Quiz 120s).
 6. **Scope 1:** `TryStartLocalDbAsync` → `MigrateAsync()` → log AI health (không chặn app).
-7. **Scope 2:** `EnsureSeedUsersAsync()`.
+7. **Scope 2:** `ISeedDataService.ApplyAsync()` (seed Admin từ data).
 8. Pipeline: HTTPS, static files, routing, auth, default route `Documents/Index`.
 
 **LocalDB helper:** Gọi `sqllocaldb start MSSQLLocalDB` — lỗi thì chỉ log debug, không crash.
@@ -577,7 +578,7 @@ dotnet ef database update --project Model --startup-project Web
 | Chat trả lời excerpt thô, không “thông minh” | Ollama offline hoặc `Enabled=false` | Bật Ollama, kiểm tra log startup “AI ready” |
 | Retrieve không ra chunk | Chưa index / status Failed / ngưỡng similarity quá cao | Reindex; hạ `MinSimilarityScore` |
 | Upload báo “chương đã có tài liệu” | Mỗi chapter 1 file | Reindex file cũ hoặc chọn chapter khác |
-| Không đăng nhập được | Sai email/password | Dùng `admin@gmail.com` / `123` sau seed |
+| Không đăng nhập được | Sai email/password / chưa seed Admin | Kiểm tra `Web/Data/seed-admin.json`, đã có user Role=Admin trong DB |
 | Migration lỗi | DB schema lệch | `dotnet ef database update` hoặc xóa DB dev và chạy lại |
 
 ---

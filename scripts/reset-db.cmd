@@ -20,6 +20,6 @@ call "%~dp0clean-keep-admin.cmd"
 if errorlevel 1 exit /b 1
 
 echo.
-echo Done. Login: admin@gmail.com / 123
+echo Done. Dang nhap Admin: admin@gmail.com / 12345 (Model\Data\UserDataSeed)
 echo Neu loi login sa: chay (Admin) scripts\enable-sa-localdb.cmd
 endlocal

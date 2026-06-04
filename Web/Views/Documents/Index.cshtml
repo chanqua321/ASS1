@@ -131,7 +131,13 @@
                         <span class="badge bg-primary doc-chunk-badge">@doc.ChunkCount</span>
                     </td>
                     <td class="doc-summary-cell">
-                        @if (doc.HasSummary)
+                        @if (doc.IsIndexed && !doc.HasSearchableText)
+                        {
+                            <span class="text-warning small cell-clamp-2" title="@doc.Summary">
+                                <i class="bi bi-exclamation-triangle me-1"></i>PPTX chưa có text — cần PDF/DOCX
+                            </span>
+                        }
+                        else if (doc.HasSummary)
                         {
                             <span class="cell-clamp-2" title="@doc.Summary">@doc.SummaryPreview</span>
                         }

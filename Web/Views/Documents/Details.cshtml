@@ -159,6 +159,14 @@
     </div>
 
     <div class="col-lg-5">
+        @if (doc.IsIndexed && !doc.HasSearchableText)
+        {
+            <div class="alert alert-warning mb-4">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                File PPTX đã lưu và <strong>Indexed</strong> nhưng hệ thống <strong>chưa đọc được chữ</strong> trong slide.
+                Upload thêm bản <strong>PDF hoặc DOCX</strong> cùng chương, rồi <strong>Index lại</strong> để chat/tóm tắt chính xác.
+            </div>
+        }
         @if (doc.HasSummary)
         {
             <div class="app-card mb-4" style="border-color:rgba(139,92,246,.3);background:linear-gradient(135deg,rgba(139,92,246,.1) 0%,var(--surface-1) 100%);">

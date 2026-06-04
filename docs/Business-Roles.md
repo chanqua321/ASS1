@@ -8,6 +8,8 @@ Luồng gọi **chỉ một chiều**:
 
 **Controller (Web) → Service (BusinessLogic) → Repository / UnitOfWork (Model)**
 
+**Một `AppDbContext` duy nhất** (`Model/Data/AppDbContext.cs`) — `AddDataLayer()`, `MigrateAsync()`, `AppDbContextFactory` (dotnet ef) trong cùng file.
+
 | Tầng | Được phép | Không được |
 |------|-----------|------------|
 | **Web / Controller** | Gọi `I*Service`, map ViewModel ↔ DTO | Inject `AppDbContext`, `I*Repository`, entity Model |
@@ -46,15 +48,17 @@ Hệ thống có 3 role:
   - Chỉ đăng ký **Student**
   - Teacher không tự đăng ký (đúng yêu cầu nghiệp vụ)
 
-## 3) Seed tài khoản demo (tạo tự động trong DB)
+## 3) Tài khoản Admin (Code First — `HasData` / `AppUserSeed`)
 
-Khi app khởi động, hệ thống gọi `IAuthService.EnsureSeedUsersAsync()` để đảm bảo có các tài khoản sau (nếu chưa tồn tại):
+Giống mẫu `RoleSeed.GetRoles()`:
 
-- `admin / 123` → role **Admin**
-- `teacher / 123` → role **Teacher**
-- `student / 123` → role **Student**
+| File | Vai trò |
+|------|---------|
+| `Model/Data/Seed/AppUserSeed.cs` | Dữ liệu cố định: Admin `admin@gmail.com` / `12345` |
+| `AppDbContext` | `HasData(AppUserSeed.GetUsers())` |
+| Migration `SeedAdminAppUserHasData` | `InsertData` vào SQL khi `dotnet ef database update` |
 
-> Lưu ý: seed chỉ nhằm demo/assignment. Thực tế có thể bỏ seed và dùng UI Admin tạo user.
+Sửa Admin: chỉnh `AppUserSeed.cs` → tạo migration mới.
 
 ## 4) Quyền truy cập theo chức năng (Web endpoints)
 

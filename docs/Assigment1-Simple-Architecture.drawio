@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Cursor">
   <diagram id="simple-arch" name="MVC-3-layer-RAG">
-    <mxGraphModel dx="1030" dy="722" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="920" math="0" shadow="0">
+    <mxGraphModel dx="1585" dy="1111" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="920" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -26,24 +26,6 @@
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="100" y="68" as="sourcePoint" />
             <mxPoint x="240" y="68" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="leg-l3" parent="arrow-legend" style="text;html=1;align=left;spacingLeft=8;fontSize=11;fontStyle=1;fontColor=#9673a6;" value="OLLAMA REQUEST" vertex="1">
-          <mxGeometry height="20" width="95" x="8" y="80" as="geometry" />
-        </mxCell>
-        <mxCell id="leg-a3" edge="1" parent="arrow-legend" style="endArrow=block;endFill=1;dashed=1;strokeWidth=2;strokeColor=#9673a6;">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="100" y="90" as="sourcePoint" />
-            <mxPoint x="240" y="90" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="leg-l4" parent="arrow-legend" style="text;html=1;align=left;spacingLeft=8;fontSize=11;fontStyle=1;fontColor=#9673a6;" value="OLLAMA RESPONSE" vertex="1">
-          <mxGeometry height="20" width="95" x="8" y="102" as="geometry" />
-        </mxCell>
-        <mxCell id="leg-a4" edge="1" parent="arrow-legend" style="endArrow=open;dashed=1;strokeWidth=2;strokeColor=#9673a6;">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="240" y="112" as="sourcePoint" />
-            <mxPoint x="100" y="112" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="user" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=14;" value="USER&#xa;(Browser)" vertex="1">
@@ -95,34 +77,19 @@
           <mxGeometry height="95" width="220" x="440" y="640" as="geometry" />
         </mxCell>
         <mxCell id="ext" parent="1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=13;startSize=30;" value="EXTERNAL SYSTEMS" vertex="1">
-          <mxGeometry height="200" width="250" x="1190" y="250" as="geometry" />
+          <mxGeometry height="250" width="250" x="1110" y="240" as="geometry" />
         </mxCell>
-        <mxCell id="ext-ollama" parent="ext" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=left;spacingLeft=10;" value="Ollama AI (local)&#xa;Config: appsettings.json → Chat:Ai&#xa;BaseUrl: http://localhost:11434/v1/&#xa;Model: llama3.2 · No API key required&#xa;POST /v1/chat/completions&#xa;Called by: RagAnswerGenerator, QuizService&#xa;Fallback: local excerpt if AI off/error" vertex="1">
-          <mxGeometry height="150" width="220" x="15" y="40" as="geometry" />
+        <mxCell id="ext-ollama" parent="ext" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=left;spacingLeft=10;" value="Ollama AI (local)&lt;br&gt;Config: appsettings.json → Chat:Ai&lt;br&gt;BaseUrl: http://localhost:11434/v1/&lt;br&gt;Model: llama3.2 · No API key&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="195" width="220" x="15" y="37.5" as="geometry" />
         </mxCell>
         <mxCell id="req1" edge="1" parent="1" source="user" style="endArrow=block;endFill=1;strokeWidth=2;strokeColor=#000000;" target="pres">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="req1l" connectable="0" parent="req1" style="edgeLabel;html=1;fontSize=11;fontColor=#000000;fontStyle=1;" value="REQUEST" vertex="1">
-          <mxGeometry relative="1" x="-0.15" as="geometry">
-            <mxPoint x="10" as="offset" />
-          </mxGeometry>
-        </mxCell>
         <mxCell id="req2" edge="1" parent="1" source="pres" style="endArrow=block;endFill=1;strokeWidth=2;strokeColor=#000000;" target="bl">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="req2l" connectable="0" parent="req2" style="edgeLabel;html=1;fontSize=10;fontColor=#000000;" value="DTO" vertex="1">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="12" as="offset" />
-          </mxGeometry>
-        </mxCell>
         <mxCell id="req3" edge="1" parent="1" source="bl" style="endArrow=block;endFill=1;strokeWidth=2;strokeColor=#000000;" target="dal">
           <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="req3l" connectable="0" parent="req3" style="edgeLabel;html=1;fontSize=10;fontColor=#000000;" value="IRepository" vertex="1">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="12" as="offset" />
-          </mxGeometry>
         </mxCell>
         <mxCell id="req4" edge="1" parent="1" source="dal" style="endArrow=block;endFill=1;strokeWidth=2;strokeColor=#000000;" target="db">
           <mxGeometry relative="1" as="geometry" />
@@ -162,29 +129,19 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="bl-ollama-req" edge="1" parent="1" style="endArrow=block;endFill=1;dashed=1;strokeWidth=2;strokeColor=#9673a6;">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="810" y="380" as="sourcePoint" />
-            <mxPoint x="1190" y="370" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="bl-ollama-req-l" connectable="0" parent="bl-ollama-req" style="edgeLabel;html=1;fontSize=10;fontColor=#9673a6;align=center;" value="POST chat/completions&#xa;(prompt + context)" vertex="1">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint y="-12" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="bl-ollama-res" edge="1" parent="1" style="endArrow=open;endFill=0;dashed=1;strokeWidth=2;strokeColor=#9673a6;">
+        <mxCell id="bl-ollama-res" edge="1" parent="1" style="endArrow=open;endFill=0;strokeWidth=2;strokeColor=#009900;dashed=1;">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1040" y="400" />
+              <mxPoint x="1040" y="425" />
             </Array>
-            <mxPoint x="1190" y="390" as="sourcePoint" />
-            <mxPoint x="810" y="400" as="targetPoint" />
+            <mxPoint x="1110" y="420" as="sourcePoint" />
+            <mxPoint x="810" y="425" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="bl-ollama-res-l" connectable="0" parent="bl-ollama-res" style="edgeLabel;html=1;fontSize=10;fontColor=#9673a6;align=center;" value="AI text (choices[0]…)" vertex="1">
+        <mxCell id="W_ADVtWskaeERSNA4_Fn-1" edge="1" parent="1" source="bl" style="endArrow=block;endFill=1;strokeWidth=2;strokeColor=#000000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ext">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint y="10" as="offset" />
+            <mxPoint x="1120" y="600" as="sourcePoint" />
+            <mxPoint x="1120" y="650" as="targetPoint" />
           </mxGeometry>
         </mxCell>
       </root>

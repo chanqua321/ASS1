@@ -56,6 +56,14 @@ public class DocumentSummaryService : IDocumentSummaryService
         if (selected.Count == 0)
             selected = chunks;
 
+        if (RagAnswerSanitizer.AreChunksOnlyPlaceholders(selected))
+        {
+            document.Summary = RagAnswerSanitizer.PlaceholderDocumentSummary;
+            document.SummaryGeneratedAt = DateTime.UtcNow;
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            return;
+        }
+
         var question =
             $"Tóm tắt toàn bộ nội dung tài liệu \"{document.FileName}\" " +
             $"thuộc môn {document.Subject?.Name ?? "học tập"}.";
@@ -63,7 +71,7 @@ public class DocumentSummaryService : IDocumentSummaryService
         var (summary, _) = await _rag.GenerateAsync(
             question,
             selected,
-            Array.Empty<string>(),
+            Array.Empty<ChatHistoryTurnDto>(),
             includeCitationHints: false,
             isSummaryQuestion: true,
             cancellationToken);

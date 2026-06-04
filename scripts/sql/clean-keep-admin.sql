@@ -11,4 +11,4 @@ DELETE FROM UserLoginHistories;
 UPDATE Subjects SET TeacherUserId = NULL;
 DELETE FROM Chapters;
 DELETE FROM Subjects;
-DELETE FROM AppUsers WHERE Email <> N'admin@gmail.com';
+DELETE FROM AppUsers WHERE Role <> N'Admin';

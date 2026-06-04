@@ -17,51 +17,6 @@ public class AuthService : IAuthService
         _uow = uow;
     }
 
-    public async Task EnsureSeedUsersAsync(CancellationToken cancellationToken = default)
-    {
-        // Seed account tối thiểu để tránh "không đăng nhập được" khi DB mới.
-        // Đồng thời dọn demo teacher/student (chỉ xoá nếu đúng dạng demo: username cố định + mật khẩu "123").
-        //
-        // Lý do: yêu cầu "xoá dữ liệu demo teacher" nhưng vẫn cần admin để quản trị.
-
-        var changed = false;
-
-        // Seed admin mặc định dùng email (theo yêu cầu login Gmail/email)
-        if (!await _users.EmailExistsAsync("admin@gmail.com", cancellationToken))
-        {
-            await _users.AddAsync(new AppUser
-            {
-                Email = "admin@gmail.com",
-                PasswordHash = PasswordHashHelper.Hash("123"),
-                Role = "Admin"
-            }, cancellationToken);
-            changed = true;
-        }
-
-        // Cleanup demo users nếu còn tồn tại (xác định bằng password demo "123").
-        // Không xoá nếu user đã đổi mật khẩu (tránh xoá nhầm).
-        changed |= await DeleteDemoUserIfMatchesAsync("teacher", "123", cancellationToken);
-        changed |= await DeleteDemoUserIfMatchesAsync("student", "123", cancellationToken);
-
-        if (changed)
-            await _uow.SaveChangesAsync(cancellationToken);
-    }
-
-    private async Task<bool> DeleteDemoUserIfMatchesAsync(
-        string email,
-        string demoPassword,
-        CancellationToken cancellationToken)
-    {
-        var user = await _users.FindByEmailAsync(email, cancellationToken);
-        if (user is null) return false;
-
-        // Chỉ xoá nếu đúng password demo
-        if (!PasswordHashHelper.Verify(demoPassword, user.PasswordHash)) return false;
-
-        _users.Remove(user);
-        return true;
-    }
-
     public async Task<(bool Success, string ErrorMessage, int UserId, string Username, string Role)> ValidateLoginAsync(
         string username,
         string password,

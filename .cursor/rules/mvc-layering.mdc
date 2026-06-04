@@ -5,6 +5,8 @@ alwaysApply: true
 
 # Luồng tầng EduAI (Assigment1)
 
+**Một `AppDbContext`** — `AppDbContext.AddDataLayer()` / `AppDbContext.MigrateAsync()`. Không thêm DbContext khác; không inject `AppDbContext` trong Web/Controller.
+
 Luồng gọi **chỉ một chiều**:
 
 **Web/Controller → BusinessLogic/Service → Model/Repository (+ IUnitOfWork)**

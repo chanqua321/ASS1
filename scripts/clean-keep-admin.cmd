@@ -24,5 +24,5 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo Done. Chi con admin@gmail.com / 123 - tao mon va teacher trong Admin UI.
+echo Done. Chi con Role=Admin - seed them trong Model\Data\UserDataSeed\*.json
 endlocal
