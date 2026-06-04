@@ -13,6 +13,10 @@ public interface ISubjectRepository
     Task<int?> GetMaxChapterOrderAsync(int subjectId, CancellationToken cancellationToken = default);
     Task AddChapterAsync(Chapter chapter, CancellationToken cancellationToken = default);
     Task<bool> ChapterBelongsToSubjectAsync(int chapterId, int subjectId, CancellationToken cancellationToken = default);
+    Task<Chapter?> FindChapterBySimilarTitleAsync(
+        int subjectId,
+        string title,
+        CancellationToken cancellationToken = default);
     Task<List<Subject>> GetAllWithTeacherAsync(CancellationToken cancellationToken = default);
     Task<Subject?> GetByIdForUpdateAsync(int id, CancellationToken cancellationToken = default);
 }

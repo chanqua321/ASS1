@@ -15,6 +15,10 @@ public class Document
     public int SubjectId { get; set; }
     public int? ChapterId { get; set; }
 
+    /// <summary>Giáo viên (hoặc admin) đã upload — dùng kiểm tra quyền xóa.</summary>
+    public int? UploadedByUserId { get; set; }
+    public AppUser? UploadedByUser { get; set; }
+
     public DocumentStatus Status { get; set; } = DocumentStatus.Pending;
     public string? ErrorMessage { get; set; }
     public DateTime UploadedAt { get; set; } = DateTime.UtcNow;

@@ -7,32 +7,44 @@ namespace BusinessLogic.Logic;
 public class DashboardService : IDashboardService
 {
     private readonly IAnalyticsRepository _analytics;
+    private readonly IDocumentService _documents;
 
-    public DashboardService(IAnalyticsRepository analytics)
+    public DashboardService(IAnalyticsRepository analytics, IDocumentService documents)
     {
         _analytics = analytics;
+        _documents = documents;
     }
 
     public async Task<TeacherDashboardDto> GetTeacherDashboardAsync(
         int teacherUserId,
         CancellationToken cancellationToken = default)
     {
-        var recent = await _analytics.GetRecentDocumentsForTeacherAsync(teacherUserId, 5, cancellationToken);
+        var allDocs = await _documents.GetProcessedDocumentsAsync(
+            subjectId: null,
+            teacherUserId: teacherUserId,
+            viewerUserId: teacherUserId,
+            viewerIsAdmin: false,
+            cancellationToken);
+
+        var recent = allDocs
+            .OrderByDescending(d => d.UploadedAt)
+            .Take(5)
+            .ToList();
 
         return new TeacherDashboardDto
         {
             SubjectCount = await _analytics.CountSubjectsForTeacherAsync(teacherUserId, cancellationToken),
-            DocumentCount = await _analytics.CountDocumentsForTeacherAsync(teacherUserId, cancellationToken),
-            ChunkCount = await _analytics.CountChunksForTeacherAsync(teacherUserId, cancellationToken),
+            DocumentCount = allDocs.Count,
+            ChunkCount = allDocs.Sum(d => d.ChunkCount),
             StudentChatMessageCount = await _analytics.CountStudentChatMessagesForTeacherAsync(teacherUserId, cancellationToken),
-            RecentDocuments = recent.Select(r => new TeacherRecentDocumentDto
+            RecentDocuments = recent.Select(d => new TeacherRecentDocumentDto
             {
-                Id = r.Id,
-                FileName = r.FileName,
-                SubjectName = r.SubjectName,
-                ChapterTitle = r.ChapterTitle,
-                UploadedAt = r.UploadedAt,
-                SummaryPreview = r.SummaryPreview
+                Id = d.Id,
+                FileName = d.FileName,
+                SubjectName = string.IsNullOrWhiteSpace(d.SubjectCode) ? d.SubjectName : d.SubjectDisplay,
+                ChapterTitle = d.ChapterTitle,
+                UploadedAt = d.UploadedAt,
+                SummaryPreview = d.SummaryPreview
             }).ToList()
         };
     }

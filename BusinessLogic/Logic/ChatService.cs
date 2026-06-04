@@ -174,6 +174,8 @@ public class ChatService : IChatService
                 _options.TopK,
                 cancellationToken);
 
+        AssignSessionSubjectFromChunks(session, chunks);
+
         var includeCitations = request.IncludeCitations ?? _options.IncludeCitationsByDefault;
 
         // Generate: gọi Ollama nếu available; fail thì fallback local excerpt/summary.
@@ -266,6 +268,23 @@ public class ChatService : IChatService
     {
         var title = question.Trim();
         return title.Length <= 80 ? title : title[..80] + "...";
+    }
+
+    private static void AssignSessionSubjectFromChunks(
+        ChatSession session,
+        IReadOnlyList<RetrievedChunkDto> chunks)
+    {
+        if (session.SubjectId.HasValue || chunks.Count == 0)
+            return;
+
+        var subjectIds = chunks
+            .Select(c => c.SubjectId)
+            .Where(id => id > 0)
+            .Distinct()
+            .ToList();
+
+        if (subjectIds.Count == 1)
+            session.SubjectId = subjectIds[0];
     }
 
     private static IReadOnlyList<DocumentLinkDto> BuildDownloadableDocuments(

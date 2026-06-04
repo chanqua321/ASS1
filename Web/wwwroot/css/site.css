@@ -228,7 +228,175 @@ header, main, footer { position: relative; z-index: 1; }
 .app-container { max-width: 1160px; }
 .app-container-wide { max-width: 1320px; }
 
-/* ── Documents table (fixed columns, no horizontal scroll) ─────── */
+/* ── Documents list (cards — no horizontal scroll) ─────────────── */
+.doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.doc-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+
+.doc-card:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  background: var(--surface-2);
+}
+
+.doc-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.doc-card-file-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  min-width: 0;
+  flex: 1;
+  text-decoration: none;
+  color: inherit;
+}
+
+.doc-card-file-link:hover .doc-card-name {
+  color: var(--c-indigo-light);
+}
+
+.doc-card-icon {
+  flex-shrink: 0;
+  font-size: 1.35rem;
+  color: var(--c-indigo-light);
+  margin-top: 0.05rem;
+}
+
+.doc-card-file-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.doc-card-name {
+  display: block;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text);
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+.doc-card-menu {
+  flex-shrink: 0;
+}
+
+.doc-menu-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.doc-delete-form {
+  margin: 0;
+}
+
+.doc-delete-form .dropdown-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.doc-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.doc-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-meta-subject {
+  color: var(--c-indigo-light);
+  font-weight: 600;
+}
+
+.doc-meta-muted {
+  color: var(--text-3);
+}
+
+.doc-card-summary {
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+.doc-summary-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.doc-card .doc-status-badge {
+  font-size: 0.65rem;
+}
+
+.doc-card-menu .dropdown-menu {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.35rem 0;
+  min-width: 10rem;
+}
+
+.doc-card-menu .dropdown-item {
+  color: var(--text);
+  font-size: 0.85rem;
+  padding: 0.45rem 0.85rem;
+}
+
+.doc-card-menu .dropdown-item:hover,
+.doc-card-menu .dropdown-item:focus {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--text);
+}
+
+.doc-card-menu .dropdown-divider {
+  border-color: var(--border);
+}
+
+/* Legacy table (dashboard) — keep below */
 .doc-table-wrap {
   overflow: hidden;
 }
@@ -245,7 +413,14 @@ header, main, footer { position: relative; z-index: 1; }
 .doc-col-summary { width: 28%; }
 .doc-col-status  { width: 10%; }
 .doc-col-date    { width: 10%; }
-.doc-col-actions { width: 3.25rem; }
+.doc-col-actions { width: 5.5rem; }
+
+.doc-actions {
+  display: inline-flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+}
 
 .doc-actions-header {
   overflow: visible !important;
@@ -366,13 +541,6 @@ header, main, footer { position: relative; z-index: 1; }
   color: var(--text-2);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
-}
-
-.doc-actions {
-  display: inline-flex;
-  gap: 0.35rem;
-  justify-content: flex-end;
-  flex-wrap: nowrap;
 }
 
 .btn-icon {

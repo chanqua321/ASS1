@@ -86,6 +86,10 @@ public class AppDbContext : DbContext
                 .WithMany(c => c.Documents)
                 .HasForeignKey(x => x.ChapterId)
                 .OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(x => x.UploadedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.UploadedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<DocumentChunk>(e =>

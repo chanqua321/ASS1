@@ -7,6 +7,7 @@ using BusinessLogic.DTOs;
 using BusinessLogic.Helpers;
 using BusinessLogic.IBusinessLogic;
 using BusinessLogic.Options;
+using Model.Helpers;
 
 namespace BusinessLogic.Logic;
 
@@ -75,6 +76,9 @@ public class DocumentService : IDocumentService
                 "Chương này đã có tài liệu. Mỗi chương chỉ được upload một file — hãy dùng Index lại hoặc chọn chương khác.");
         }
 
+        if (chapterId.HasValue)
+            await EnsureNoSimilarChapterWithDocumentAsync(subjectId, chapterId.Value, cancellationToken);
+
         // Lưu file vật lý trước, sau đó DB chỉ lưu metadata + đường dẫn.
         Directory.CreateDirectory(_uploadRoot);
         var storedFileName = $"{Guid.NewGuid():N}{extension}";
@@ -95,6 +99,7 @@ public class DocumentService : IDocumentService
             FilePath = physicalPath,
             SubjectId = subjectId,
             ChapterId = chapterId,
+            UploadedByUserId = request.UploadedByUserId,
             Status = DocumentStatus.Pending
         };
 
@@ -183,11 +188,63 @@ public class DocumentService : IDocumentService
     public async Task<IReadOnlyList<DocumentListItemDto>> GetProcessedDocumentsAsync(
         int? subjectId = null,
         int? teacherUserId = null,
+        int? viewerUserId = null,
+        bool viewerIsAdmin = false,
         CancellationToken cancellationToken = default)
     {
         var items = await _documents.GetProcessedListAsync(subjectId, teacherUserId, cancellationToken);
-        var deduped = DeduplicateByChapter(items);
-        return deduped.Select(MapToListItem).ToList();
+        return items.Select(d => MapToListItem(d, viewerUserId, viewerIsAdmin)).ToList();
+    }
+
+    public Task<bool> CanDeleteAsync(
+        int documentId,
+        int userId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default) =>
+        CanUserDeleteDocumentAsync(documentId, userId, isAdmin, cancellationToken);
+
+    public async Task<(bool Success, string ErrorMessage)> DeleteAsync(
+        int documentId,
+        int userId,
+        bool isAdmin,
+        CancellationToken cancellationToken = default)
+    {
+        if (!await CanUserDeleteDocumentAsync(documentId, userId, isAdmin, cancellationToken))
+            return (false, "Chỉ người đã upload hoặc Admin mới được xóa tài liệu này.");
+
+        var document = await _documents.GetByIdForDeleteAsync(documentId, cancellationToken);
+        if (document is null)
+            return (false, "Tài liệu không tồn tại.");
+
+        var filePath = document.FilePath;
+
+        await _documents.DeleteCitationsForDocumentAsync(documentId, cancellationToken);
+        _documents.Remove(document);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
+        {
+            try { File.Delete(filePath); }
+            catch
+            {
+                // DB đã xóa; file disk có thể xóa tay sau.
+            }
+        }
+
+        return (true, "");
+    }
+
+    private async Task<bool> CanUserDeleteDocumentAsync(
+        int documentId,
+        int userId,
+        bool isAdmin,
+        CancellationToken cancellationToken)
+    {
+        if (isAdmin)
+            return await _documents.ExistsAsync(documentId, cancellationToken);
+
+        var uploadedBy = await _documents.GetUploadedByUserIdAsync(documentId, cancellationToken);
+        return uploadedBy.HasValue && uploadedBy.Value == userId;
     }
 
     public Task<bool> TeacherCanAccessAsync(
@@ -196,33 +253,22 @@ public class DocumentService : IDocumentService
         CancellationToken cancellationToken = default) =>
         _documents.IsInTeacherSubjectAsync(documentId, teacherUserId, cancellationToken);
 
-    private static List<Document> DeduplicateByChapter(List<Document> items)
-    {
-        var withChapter = items.Where(d => d.ChapterId.HasValue).ToList();
-        var withoutChapter = items.Where(d => !d.ChapterId.HasValue).ToList();
-
-        var latestPerChapter = withChapter
-            .GroupBy(d => new { d.SubjectId, d.ChapterId })
-            .Select(g => g.OrderByDescending(x => x.UploadedAt).First());
-
-        return latestPerChapter
-            .Concat(withoutChapter)
-            .OrderByDescending(d => d.UploadedAt)
-            .ToList();
-    }
-
     public async Task<DocumentListItemDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         var doc = await _documents.GetByIdWithDetailsAsync(id, cancellationToken);
         return doc is null ? null : MapToListItem(doc);
     }
 
-    public async Task<DocumentDetailsDto?> GetDetailsAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<DocumentDetailsDto?> GetDetailsAsync(
+        int id,
+        int? viewerUserId = null,
+        bool viewerIsAdmin = false,
+        CancellationToken cancellationToken = default)
     {
         var doc = await _documents.GetByIdWithDetailsAsync(id, cancellationToken);
         if (doc is null) return null;
 
-        var baseDto = MapToListItem(doc);
+        var baseDto = MapToListItem(doc, viewerUserId, viewerIsAdmin);
         return new DocumentDetailsDto
         {
             Id = baseDto.Id,
@@ -242,7 +288,10 @@ public class DocumentService : IDocumentService
             FileTypeLabel = baseDto.FileTypeLabel,
             Summary = baseDto.Summary,
             SummaryGeneratedAt = baseDto.SummaryGeneratedAt,
-            SummaryPreview = baseDto.SummaryPreview
+            SummaryPreview = baseDto.SummaryPreview,
+            HasSearchableText = baseDto.HasSearchableText,
+            UploadedByUserId = baseDto.UploadedByUserId,
+            CanDelete = baseDto.CanDelete
         };
     }
 
@@ -291,7 +340,12 @@ public class DocumentService : IDocumentService
 
         if (!string.IsNullOrWhiteSpace(request.NewChapterTitle))
         {
-            chapterId = await _subjectService.CreateChapterAsync(
+            var similar = await _subjects.FindChapterBySimilarTitleAsync(
+                subjectId,
+                request.NewChapterTitle,
+                cancellationToken);
+
+            chapterId = similar?.Id ?? await _subjectService.CreateChapterAsync(
                 subjectId,
                 request.NewChapterTitle,
                 cancellationToken);
@@ -306,9 +360,40 @@ public class DocumentService : IDocumentService
         return (subjectId, chapterId);
     }
 
-    private static DocumentListItemDto MapToListItem(Document d)
+    private async Task EnsureNoSimilarChapterWithDocumentAsync(
+        int subjectId,
+        int chapterId,
+        CancellationToken cancellationToken)
+    {
+        var incomingTitle = await _documents.GetChapterTitleAsync(chapterId, cancellationToken);
+        if (string.IsNullOrWhiteSpace(incomingTitle))
+            return;
+
+        var rows = await _documents.GetChapterDocumentRowsAsync(subjectId, cancellationToken);
+        foreach (var row in rows)
+        {
+            if (row.ChapterId == chapterId)
+                continue;
+
+            if (!ChapterTitleHelper.AreSimilar(incomingTitle, row.ChapterTitle))
+                continue;
+
+            throw new InvalidOperationException(
+                $"Môn này đã có tài liệu cho chương tương tự \"{row.ChapterTitle}\". " +
+                "Không upload thêm bản trùng — hãy Index lại file cũ hoặc chọn tên chương khác (ví dụ Chương 2).");
+        }
+    }
+
+    private static DocumentListItemDto MapToListItem(
+        Document d,
+        int? viewerUserId = null,
+        bool viewerIsAdmin = false)
     {
         var (badge, icon, label) = DocumentDisplayHelper.GetStatusDisplay(d.Status);
+        var canDelete = viewerIsAdmin ||
+                        (viewerUserId.HasValue &&
+                         d.UploadedByUserId.HasValue &&
+                         d.UploadedByUserId.Value == viewerUserId.Value);
         return new DocumentListItemDto
         {
             Id = d.Id,
@@ -329,7 +414,9 @@ public class DocumentService : IDocumentService
             Summary = d.Summary,
             SummaryGeneratedAt = d.SummaryGeneratedAt,
             SummaryPreview = BuildSummaryPreview(d.Summary),
-            HasSearchableText = RagAnswerSanitizer.DocumentHasSearchableText(d.Chunks.Select(c => c.Content))
+            HasSearchableText = RagAnswerSanitizer.DocumentHasSearchableText(d.Chunks.Select(c => c.Content)),
+            UploadedByUserId = d.UploadedByUserId,
+            CanDelete = canDelete
         };
     }
 

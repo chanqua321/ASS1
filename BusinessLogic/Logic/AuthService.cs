@@ -70,37 +70,31 @@ public class AuthService : IAuthService
         var existing = await _users.FindByEmailIgnoreCaseAsync(email, cancellationToken);
         if (existing is not null)
         {
-            // Teacher đã tồn tại → Admin có thể gán thêm môn khác cho cùng email (không cần mật khẩu).
-            if (existing.Role == "Teacher")
+            if (string.Equals(existing.Role, "Teacher", StringComparison.OrdinalIgnoreCase))
                 return (true, "", existing);
-            if (existing.Role == "Admin")
+            if (string.Equals(existing.Role, "Admin", StringComparison.OrdinalIgnoreCase))
                 return (false, "Không thể dùng email Admin làm Teacher.", null);
+            if (string.Equals(existing.Role, "Student", StringComparison.OrdinalIgnoreCase))
+                return (false, "Email đã đăng ký Student. Tạo giáo viên bằng email khác.", null);
 
-            if (string.IsNullOrWhiteSpace(password) || password.Length < 3)
-                return (false, "Mật khẩu tối thiểu 3 ký tự.", null);
-
-            if (!PasswordHashHelper.Verify(password, existing.PasswordHash))
-                return (false, "Email đã đăng ký (Student). Nhập đúng mật khẩu hiện tại hoặc dùng email khác.", null);
-
-            existing.Role = "Teacher";
-            await _uow.SaveChangesAsync(cancellationToken);
-            return (true, "", existing);
+            return (false, "Email đã tồn tại với vai trò không hợp lệ.", null);
         }
 
         if (string.IsNullOrWhiteSpace(password) || password.Length < 3)
             return (false, "Mật khẩu tối thiểu 3 ký tự.", null);
 
-        var (ok, err) = await RegisterStudentAsync(email, password, cancellationToken);
-        if (!ok)
-            return (false, err, null);
+        await _users.AddAsync(new AppUser
+        {
+            Email = email,
+            PasswordHash = PasswordHashHelper.Hash(password),
+            Role = "Teacher"
+        }, cancellationToken);
+        await _uow.SaveChangesAsync(cancellationToken);
 
         var created = await _users.FindByEmailIgnoreCaseAsync(email, cancellationToken);
-        if (created is null)
-            return (false, "Không tìm thấy tài khoản vừa tạo.", null);
-
-        created.Role = "Teacher";
-        await _uow.SaveChangesAsync(cancellationToken);
-        return (true, "", created);
+        return created is null
+            ? (false, "Không tìm thấy tài khoản vừa tạo.", null)
+            : (true, "", created);
     }
 }
 

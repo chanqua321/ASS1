@@ -12,14 +12,6 @@
     </p>
 </div>
 
-<div class="teacher-rule-banner mb-4" role="note">
-    <i class="bi bi-diagram-3 me-2" aria-hidden="true"></i>
-    <span>
-        <strong>Quy tắc gán môn:</strong> Admin gán từng môn cho một giáo viên.
-        Cùng email giáo viên có thể được gán thêm môn khác — bạn chỉ upload/chat trên các môn mình phụ trách.
-    </span>
-</div>
-
 <div class="row g-3 mb-4">
     <div class="col-6 col-lg-3">
         <div class="dash-stat-card">
@@ -54,9 +46,14 @@
 <div class="app-card">
     <div class="app-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <span><i class="bi bi-clock-history me-2" style="color:var(--c-indigo-light)"></i>Tài liệu mới nhất</span>
-        <a asp-controller="Documents" asp-action="Upload" class="btn btn-sm btn-primary">
-            <i class="bi bi-cloud-upload me-1"></i> Upload mới
-        </a>
+        <div class="d-flex gap-2 flex-wrap">
+            <a asp-controller="Documents" asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-folder2-open me-1"></i> Kho tài liệu
+            </a>
+            <a asp-controller="Documents" asp-action="Upload" class="btn btn-sm btn-primary">
+                <i class="bi bi-cloud-upload me-1"></i> Upload mới
+            </a>
+        </div>
     </div>
     <div class="card-body p-0">
         @if (!Model.RecentDocuments.Any())

@@ -27,4 +27,6 @@ public class DocumentListItemDto
     public bool HasSummary => !string.IsNullOrWhiteSpace(Summary);
     /// <summary>False khi chunk chỉ là ghi chú PPTX/placeholder — chat RAG không dùng được.</summary>
     public bool HasSearchableText { get; set; } = true;
+    public int? UploadedByUserId { get; set; }
+    public bool CanDelete { get; set; }
 }

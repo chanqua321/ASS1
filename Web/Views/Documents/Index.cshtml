@@ -10,7 +10,7 @@
         <p class="page-subtitle">
             @if (User.IsInRole("Teacher"))
             {
-                <text>Tài liệu các môn bạn phụ trách — mỗi chương hiển thị bản mới nhất.</text>
+                <text>Tài liệu các môn bạn phụ trách. Mỗi chương (tên tương tự) chỉ upload một lần.</text>
             }
             else
             {
@@ -50,137 +50,131 @@
     }
 </form>
 
-<div class="app-table-wrap doc-table-wrap">
-    <table class="table doc-table align-middle mb-0">
-        <colgroup>
-            <col class="doc-col-file" />
-            <col class="doc-col-subject" />
-            <col class="doc-col-chapter" />
-            <col class="doc-col-chunk" />
-            <col class="doc-col-summary" />
-            <col class="doc-col-status" />
-            <col class="doc-col-date" />
-            <col class="doc-col-actions" />
-        </colgroup>
-        <thead>
-            <tr>
-                <th><i class="bi bi-file-earmark me-1"></i>Tên file</th>
-                <th><i class="bi bi-book me-1"></i>Môn</th>
-                <th>Chương</th>
-                <th class="text-center"><i class="bi bi-layers"></i></th>
-                <th><i class="bi bi-stars me-1"></i>Tóm tắt AI</th>
-                <th>Trạng thái</th>
-                <th><i class="bi bi-calendar3 me-1"></i>Upload</th>
-                <th class="text-end doc-actions-header" scope="col">
-                    <span class="visually-hidden">Thao tác</span>
-                    <i class="bi bi-eye" aria-hidden="true"></i>
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-        @if (!Model.Documents.Any())
-        {
-            <tr>
-                <td colspan="8" class="p-0 border-0">
-                    <div class="empty-state">
-                        <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
-                        <p class="fw-semibold mb-1">Chưa có tài liệu nào</p>
-                        <p class="small mb-4">
-                            @(User.Identity?.IsAuthenticated == true && User.IsInRole("Teacher")
-                                ? "Upload file đầu tiên để bắt đầu hỏi đáp trên chat AI."
-                                : "Chưa có tài liệu nào được giáo viên upload. Vui lòng quay lại sau hoặc vào Chat để hỏi khi đã có tài liệu.")
-                        </p>
-                        @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Teacher"))
-                        {
-                            <a asp-action="Upload" class="btn btn-primary">
-                                <i class="bi bi-cloud-upload me-1"></i> Upload ngay
-                            </a>
-                        }
-                    </div>
-                </td>
-            </tr>
-        }
-        else
-        {
-            @foreach (var doc in Model.Documents)
-            {
-                var ext = System.IO.Path.GetExtension(doc.FileName).ToLower();
-                var iconClass = ext switch {
-                    ".pdf"  => "bi-filetype-pdf",
-                    ".docx" => "bi-filetype-docx",
-                    ".pptx" or ".ppt" => "bi-filetype-pptx",
-                    _       => "bi-file-earmark-text"
-                };
-                <tr>
-                    <td class="doc-file-cell">
-                        <div class="doc-file-inner">
-                            <i class="bi @iconClass doc-file-icon" aria-hidden="true"></i>
-                            <div class="doc-file-text min-w-0">
-                                <span class="cell-ellipsis doc-file-name" title="@doc.FileName">@doc.FileName</span>
-                                <span class="doc-type-pill">@doc.FileTypeLabel</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="cell-ellipsis doc-subject" title="@doc.SubjectDisplay">@doc.SubjectCode</span>
-                    </td>
-                    <td>
-                        <span class="cell-ellipsis text-muted doc-chapter" title="@doc.ChapterTitle">@(doc.ChapterTitle ?? "—")</span>
-                    </td>
-                    <td class="text-center">
-                        <span class="badge bg-primary doc-chunk-badge">@doc.ChunkCount</span>
-                    </td>
-                    <td class="doc-summary-cell">
-                        @if (doc.IsIndexed && !doc.HasSearchableText)
-                        {
-                            <span class="text-warning small cell-clamp-2" title="@doc.Summary">
-                                <i class="bi bi-exclamation-triangle me-1"></i>PPTX chưa có text — cần PDF/DOCX
-                            </span>
-                        }
-                        else if (doc.HasSummary)
-                        {
-                            <span class="cell-clamp-2" title="@doc.Summary">@doc.SummaryPreview</span>
-                        }
-                        else if (doc.IsIndexed)
-                        {
-                            <span class="doc-summary-empty">Chưa có</span>
-                        }
-                        else
-                        {
-                            <span class="doc-summary-empty">—</span>
-                        }
-                    </td>
-                    <td>
-                        <span class="badge @doc.StatusBadgeClass doc-status-badge">
-                            <i class="bi @doc.StatusIcon me-1"></i>@doc.StatusLabel
-                        </span>
-                    </td>
-                    <td>
-                        <span class="doc-date">@doc.UploadedAt.ToLocalTime().ToString("dd/MM/yy HH:mm")</span>
-                    </td>
-                    <td class="text-end">
-                        <div class="doc-actions">
-                            <a asp-action="Details" asp-route-id="@doc.Id" class="btn btn-sm btn-outline-primary btn-icon" title="Chi tiết">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            <a asp-action="Download" asp-route-id="@doc.Id" class="btn btn-sm btn-outline-secondary btn-icon" title="Tải xuống">
-                                <i class="bi bi-download"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-            }
-        }
-        </tbody>
-    </table>
-</div>
-
-@if (Model.Documents.Any())
+@if (!Model.Documents.Any())
 {
-    <div class="mt-3 d-flex justify-content-between align-items-center">
+    <div class="app-card">
+        <div class="empty-state py-5">
+            <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
+            <p class="fw-semibold mb-1">Chưa có tài liệu nào</p>
+            <p class="small mb-4">
+                @(User.Identity?.IsAuthenticated == true && User.IsInRole("Teacher")
+                    ? "Upload file đầu tiên để bắt đầu hỏi đáp trên chat AI."
+                    : "Chưa có tài liệu nào được giáo viên upload. Vui lòng quay lại sau hoặc vào Chat để hỏi khi đã có tài liệu.")
+            </p>
+            @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Teacher"))
+            {
+                <a asp-action="Upload" class="btn btn-primary">
+                    <i class="bi bi-cloud-upload me-1"></i> Upload ngay
+                </a>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="doc-list">
+        @foreach (var doc in Model.Documents)
+        {
+            var ext = System.IO.Path.GetExtension(doc.FileName).ToLower();
+            var iconClass = ext switch {
+                ".pdf"  => "bi-filetype-pdf",
+                ".docx" => "bi-filetype-docx",
+                ".pptx" or ".ppt" => "bi-filetype-pptx",
+                _       => "bi-file-earmark-text"
+            };
+            <article class="doc-card">
+                <div class="doc-card-top">
+                    <a asp-action="Details" asp-route-id="@doc.Id" class="doc-card-file-link">
+                        <i class="bi @iconClass doc-card-icon" aria-hidden="true"></i>
+                        <div class="doc-card-file-text">
+                            <span class="doc-card-name" title="@doc.FileName">@doc.FileName</span>
+                            <span class="doc-type-pill">@doc.FileTypeLabel</span>
+                        </div>
+                    </a>
+                    <div class="dropdown doc-card-menu">
+                        <button type="button" class="btn btn-sm btn-outline-secondary doc-menu-btn"
+                                data-bs-toggle="dropdown" aria-expanded="false"
+                                aria-label="Thao tác @doc.FileName">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li>
+                                <a class="dropdown-item" asp-action="Details" asp-route-id="@doc.Id">
+                                    <i class="bi bi-eye me-2"></i>Chi tiết
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-action="Download" asp-route-id="@doc.Id">
+                                    <i class="bi bi-download me-2"></i>Tải xuống
+                                </a>
+                            </li>
+                            @if (doc.CanDelete)
+                            {
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <form asp-action="Delete" asp-route-id="@doc.Id" method="post" class="doc-delete-form">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item text-danger"
+                                                onclick="return confirm('Xóa tài liệu này? Hành động không hoàn tác.');">
+                                            <i class="bi bi-trash me-2"></i>Xóa
+                                        </button>
+                                    </form>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="doc-card-meta">
+                    <span class="doc-meta-pill doc-meta-subject" title="@doc.SubjectDisplay">
+                        <i class="bi bi-book me-1"></i>@doc.SubjectCode
+                    </span>
+                    @if (!string.IsNullOrWhiteSpace(doc.ChapterTitle))
+                    {
+                        <span class="doc-meta-pill" title="@doc.ChapterTitle">
+                            <i class="bi bi-bookmark me-1"></i>@doc.ChapterTitle
+                        </span>
+                    }
+                    <span class="badge @doc.StatusBadgeClass doc-status-badge">
+                        <i class="bi @doc.StatusIcon me-1"></i>@doc.StatusLabel
+                    </span>
+                    <span class="doc-meta-pill doc-meta-muted">
+                        <i class="bi bi-layers me-1"></i>@doc.ChunkCount chunk
+                    </span>
+                    <span class="doc-meta-pill doc-meta-muted">
+                        <i class="bi bi-calendar3 me-1"></i>@doc.UploadedAt.ToLocalTime().ToString("dd/MM/yy HH:mm")
+                    </span>
+                </div>
+
+                <div class="doc-card-summary">
+                    @if (doc.IsIndexed && !doc.HasSearchableText)
+                    {
+                        <span class="text-warning small">
+                            <i class="bi bi-exclamation-triangle me-1"></i>Chưa có text để chat —
+                            <a asp-action="Details" asp-route-id="@doc.Id">xem hướng dẫn</a>
+                        </span>
+                    }
+                    else if (doc.HasSummary)
+                    {
+                        <span class="doc-summary-preview" title="@doc.Summary">@doc.SummaryPreview</span>
+                    }
+                    else if (doc.IsIndexed)
+                    {
+                        <span class="doc-summary-empty">Tóm tắt AI: chưa có</span>
+                    }
+                    else
+                    {
+                        <span class="doc-summary-empty">—</span>
+                    }
+                </div>
+            </article>
+        }
+    </div>
+
+    <div class="mt-3">
         <span class="text-muted small">
             <i class="bi bi-info-circle me-1"></i>
-            Tổng <strong style="color:var(--text)">@Model.Documents.Count()</strong> tài liệu
+            Tổng <strong style="color:var(--text)">@Model.Documents.Count</strong> tài liệu
         </span>
     </div>
 }

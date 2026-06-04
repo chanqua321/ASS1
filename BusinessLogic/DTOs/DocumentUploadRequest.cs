@@ -19,5 +19,7 @@ public class DocumentUploadRequest
 
     /// <summary>Tên chương mới do người dùng nhập.</summary>
     public string? NewChapterTitle { get; set; }
+
+    public int UploadedByUserId { get; set; }
 }
 

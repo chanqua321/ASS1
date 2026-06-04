@@ -14,7 +14,7 @@ public interface IAuthService
         string password,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Tạo user Teacher mới hoặc nâng Student đã có (cùng email, đúng mật khẩu).</summary>
+    /// <summary>Tạo tài khoản Teacher mới hoặc dùng Teacher đã có (gán thêm môn).</summary>
     Task<(bool Success, string ErrorMessage, AppUser? User)> PrepareTeacherUserAsync(
         string email,
         string password,

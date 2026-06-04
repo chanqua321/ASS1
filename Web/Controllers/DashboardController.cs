@@ -5,6 +5,7 @@ using BusinessLogic.IBusinessLogic;
 
 namespace Web.Controllers;
 
+[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 public class DashboardController : Controller
 {
     private readonly IDashboardService _dashboard;

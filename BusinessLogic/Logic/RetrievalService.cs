@@ -57,6 +57,7 @@ public class RetrievalService : IRetrievalService
                     ChapterTitle = c.Document.Chapter?.Title,
                     SubjectName = c.Document.Subject.Name,
                     SubjectCode = c.Document.Subject.Code,
+                    SubjectId = c.Document.SubjectId,
                     Content = c.Content,
                     Score = score
                 };
@@ -123,6 +124,7 @@ public class RetrievalService : IRetrievalService
         ChapterTitle = c.Document.Chapter?.Title,
         SubjectName = c.Document.Subject.Name,
         SubjectCode = c.Document.Subject.Code,
+        SubjectId = c.Document.SubjectId,
         Content = c.Content,
         Score = 1.0
     };

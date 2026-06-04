@@ -23,8 +23,18 @@ public class AnalyticsRepository(AppDbContext db) : IAnalyticsRepository
     public Task<int> CountStudentChatMessagesForTeacherAsync(int teacherUserId, CancellationToken cancellationToken = default) =>
         db.ChatMessages.CountAsync(
             m => m.Role == ChatMessageRole.User &&
-                 m.Session.SubjectId != null &&
-                 m.Session.Subject!.TeacherUserId == teacherUserId,
+                 (
+                     (m.Session.SubjectId != null &&
+                      m.Session.Subject!.TeacherUserId == teacherUserId)
+                     || m.Citations.Any(c =>
+                         db.Documents.Any(d =>
+                             d.Id == c.DocumentId && d.Subject.TeacherUserId == teacherUserId))
+                     || m.Session.Messages.Any(x =>
+                         x.Role == ChatMessageRole.Assistant &&
+                         x.Citations.Any(c =>
+                             db.Documents.Any(d =>
+                                 d.Id == c.DocumentId && d.Subject.TeacherUserId == teacherUserId)))
+                 ),
             cancellationToken);
 
     public async Task<List<TeacherRecentDocumentRow>> GetRecentDocumentsForTeacherAsync(
@@ -132,34 +142,57 @@ public class AnalyticsRepository(AppDbContext db) : IAnalyticsRepository
         int take,
         CancellationToken cancellationToken = default)
     {
-        var grouped = await db.ChatSessions
+        // Phiên có môn chọn sẵn (dropdown) hoặc đã gán sau RAG.
+        var explicitCounts = await db.ChatSessions
             .AsNoTracking()
             .Where(s => s.SubjectId != null)
-            .GroupBy(s => s.SubjectId)
-            .Select(g => new { SubjectId = g.Key!.Value, Count = g.Count() })
-            .OrderByDescending(x => x.Count)
-            .Take(take)
+            .GroupBy(s => s.SubjectId!.Value)
+            .Select(g => new { SubjectId = g.Key, Count = g.Count() })
             .ToListAsync(cancellationToken);
 
-        if (grouped.Count == 0)
+        // Phiên "Tất cả tài liệu": suy môn từ citation tài liệu trong hội thoại.
+        var inferredCounts = await (
+                from c in db.MessageCitations.AsNoTracking()
+                join m in db.ChatMessages on c.MessageId equals m.Id
+                join s in db.ChatSessions on m.SessionId equals s.Id
+                join d in db.Documents on c.DocumentId equals d.Id
+                where s.SubjectId == null
+                select new { SessionId = s.Id, d.SubjectId })
+            .Distinct()
+            .GroupBy(x => x.SubjectId)
+            .Select(g => new { SubjectId = g.Key, Count = g.Select(x => x.SessionId).Distinct().Count() })
+            .ToListAsync(cancellationToken);
+
+        var merged = new Dictionary<int, int>();
+        foreach (var row in explicitCounts)
+            merged[row.SubjectId] = merged.GetValueOrDefault(row.SubjectId) + row.Count;
+        foreach (var row in inferredCounts)
+            merged[row.SubjectId] = merged.GetValueOrDefault(row.SubjectId) + row.Count;
+
+        if (merged.Count == 0)
             return new List<SubjectAccessRow>();
 
-        var ids = grouped.Select(g => g.SubjectId).ToList();
+        var top = merged
+            .OrderByDescending(kv => kv.Value)
+            .Take(take)
+            .ToList();
+
+        var ids = top.Select(kv => kv.Key).ToList();
         var subjects = await db.Subjects
             .AsNoTracking()
             .Where(s => ids.Contains(s.Id))
             .ToDictionaryAsync(s => s.Id, cancellationToken);
 
-        return grouped
-            .Where(g => subjects.ContainsKey(g.SubjectId))
-            .Select(g =>
+        return top
+            .Where(kv => subjects.ContainsKey(kv.Key))
+            .Select(kv =>
             {
-                var s = subjects[g.SubjectId];
+                var s = subjects[kv.Key];
                 return new SubjectAccessRow
                 {
                     SubjectCode = s.Code,
                     SubjectName = s.Name,
-                    SessionCount = g.Count
+                    SessionCount = kv.Value
                 };
             })
             .ToList();

@@ -35,16 +35,14 @@ public class AssignTeacherResultDto
     public string? TeacherEmail { get; init; }
     public string? SubjectCode { get; init; }
     public bool CreatedTeacher { get; init; }
-    public bool PromotedFromStudent { get; init; }
 
-    public static AssignTeacherResultDto Ok(string teacherEmail, string subjectCode, bool createdTeacher, bool promotedFromStudent) =>
+    public static AssignTeacherResultDto Ok(string teacherEmail, string subjectCode, bool createdTeacher) =>
         new()
         {
             Success = true,
             TeacherEmail = teacherEmail,
             SubjectCode = subjectCode,
-            CreatedTeacher = createdTeacher,
-            PromotedFromStudent = promotedFromStudent
+            CreatedTeacher = createdTeacher
         };
 
     public static AssignTeacherResultDto Fail(string message) =>
@@ -54,4 +52,5 @@ public class AssignTeacherResultDto
 public class AssignTeacherFormValidationDto
 {
     public bool RequiresPassword { get; init; }
+    public bool IsStudentEmail { get; init; }
 }

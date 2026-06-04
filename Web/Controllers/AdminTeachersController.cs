@@ -37,7 +37,13 @@ public class AdminTeachersController : Controller
 
         var hints = await _teacherAssignments.GetFormValidationHintsAsync(model.Email, cancellationToken);
         if (hints.RequiresPassword && string.IsNullOrWhiteSpace(model.Password))
-            ModelState.AddModelError(nameof(model.Password), "Nhập mật khẩu cho tài khoản mới hoặc Student.");
+            ModelState.AddModelError(nameof(model.Password), "Nhập mật khẩu để tạo tài khoản giáo viên mới.");
+
+        if (hints.IsStudentEmail)
+            ModelState.AddModelError(nameof(model.Email), "Email này đã là Student — dùng email khác; không nâng Student thành giáo viên.");
+
+        if (!hints.RequiresPassword)
+            ModelState.Remove(nameof(model.Password));
 
         if (!ModelState.IsValid)
             return View(await BuildPageAsync(model.SubjectId, cancellationToken, model));
@@ -46,7 +52,7 @@ public class AdminTeachersController : Controller
         {
             var result = await _teacherAssignments.AssignTeacherAsync(
                 model.Email,
-                model.Password,
+                model.Password ?? string.Empty,
                 model.SubjectId!.Value,
                 cancellationToken);
 
@@ -61,7 +67,7 @@ public class AdminTeachersController : Controller
                 $"Subject={result.SubjectCode}; Teacher={result.TeacherEmail}",
                 cancellationToken);
 
-            if (result.CreatedTeacher || result.PromotedFromStudent)
+            if (result.CreatedTeacher)
             {
                 await AuditHttpHelper.LogAsync(
                     HttpContext, _audit, AuditActions.CreateTeacher,

@@ -117,8 +117,9 @@ Controller: `Web/Controllers/AdminUsersController.cs`
   - Xem danh sách user
   - Xem danh sách môn + trạng thái đã có teacher hay chưa
 
-- `GET/POST /AdminUsers/CreateTeacher`
-  - Admin tạo 1 tài khoản mới (ban đầu register như student) → nâng role thành Teacher
+- `GET/POST /AdminTeachers` (trước: AdminUsers/CreateTeacher)
+  - Admin tạo Teacher mới (email + mật khẩu) hoặc gán thêm môn cho Teacher đã có (cùng email, không cần mật khẩu)
+  - **Không** nâng Student → Teacher; email Student phải dùng email khác
   - Admin gán teacher đó vào 1 môn
   - Rule enforced: **mỗi môn chỉ có 1 teacher**; **một teacher có thể phụ trách nhiều môn** (gán lại cùng email)
 

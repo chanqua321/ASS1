@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Web.ViewModels;
@@ -10,7 +11,8 @@ public class AdminTeachersIndexViewModel
     public string Email { get; set; } = string.Empty;
 
     [DataType(DataType.Password)]
-    public string Password { get; set; } = string.Empty;
+    [ValidateNever]
+    public string? Password { get; set; }
 
     [Required(ErrorMessage = "Chọn môn cần gán.")]
     public int? SubjectId { get; set; }

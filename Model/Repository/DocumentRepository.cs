@@ -67,6 +67,27 @@ public class DocumentRepository(AppDbContext db) : IDocumentRepository
             d => d.SubjectId == subjectId && d.ChapterId == chapterId,
             cancellationToken);
 
+    public Task<List<ChapterDocumentRow>> GetChapterDocumentRowsAsync(
+        int subjectId,
+        CancellationToken cancellationToken = default) =>
+        db.Documents
+            .AsNoTracking()
+            .Where(d => d.SubjectId == subjectId && d.ChapterId != null)
+            .Join(
+                db.Chapters,
+                d => d.ChapterId,
+                c => c.Id,
+                (d, c) => new ChapterDocumentRow { ChapterId = c.Id, ChapterTitle = c.Title })
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+    public Task<string?> GetChapterTitleAsync(int chapterId, CancellationToken cancellationToken = default) =>
+        db.Chapters
+            .AsNoTracking()
+            .Where(c => c.Id == chapterId)
+            .Select(c => c.Title)
+            .FirstOrDefaultAsync(cancellationToken);
+
     public Task<bool> IsInTeacherSubjectAsync(
         int documentId,
         int teacherUserId,
@@ -74,6 +95,25 @@ public class DocumentRepository(AppDbContext db) : IDocumentRepository
         db.Documents.AnyAsync(
             d => d.Id == documentId && d.Subject.TeacherUserId == teacherUserId,
             cancellationToken);
+
+    public Task<int?> GetUploadedByUserIdAsync(int documentId, CancellationToken cancellationToken = default) =>
+        db.Documents
+            .AsNoTracking()
+            .Where(d => d.Id == documentId)
+            .Select(d => d.UploadedByUserId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+    public Task<Document?> GetByIdForDeleteAsync(int id, CancellationToken cancellationToken = default) =>
+        db.Documents
+            .Include(d => d.Chunks)
+            .FirstOrDefaultAsync(d => d.Id == id, cancellationToken);
+
+    public Task DeleteCitationsForDocumentAsync(int documentId, CancellationToken cancellationToken = default) =>
+        db.MessageCitations
+            .Where(c => c.DocumentId == documentId)
+            .ExecuteDeleteAsync(cancellationToken);
+
+    public void Remove(Document document) => db.Documents.Remove(document);
 
     public Task RemoveChunksAsync(IEnumerable<DocumentChunk> chunks, CancellationToken cancellationToken = default)
     {

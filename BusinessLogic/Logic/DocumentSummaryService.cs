@@ -58,7 +58,7 @@ public class DocumentSummaryService : IDocumentSummaryService
 
         if (RagAnswerSanitizer.AreChunksOnlyPlaceholders(selected))
         {
-            document.Summary = RagAnswerSanitizer.PlaceholderDocumentSummary;
+            document.Summary = RagAnswerSanitizer.GetNoExtractableTextSummary(document.FileType, document.FileName);
             document.SummaryGeneratedAt = DateTime.UtcNow;
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return;

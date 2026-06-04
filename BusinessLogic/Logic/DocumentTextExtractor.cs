@@ -26,8 +26,21 @@ public class DocumentTextExtractor : IDocumentTextExtractor
 
         text = Normalize(text);
         return Task.FromResult(string.IsNullOrWhiteSpace(text)
-            ? $"[Không trích xuất được nội dung từ {Path.GetFileName(filePath)}]"
+            ? BuildExtractionFailurePlaceholder(fileType, filePath)
             : text);
+    }
+
+    private static string BuildExtractionFailurePlaceholder(DocumentFileType fileType, string filePath)
+    {
+        var name = Path.GetFileName(filePath);
+        return fileType switch
+        {
+            DocumentFileType.Pdf =>
+                "[PDF: không trích xuất được chữ — file có thể là slide ảnh. Export PDF có lớp text hoặc upload DOCX.]",
+            DocumentFileType.Pptx =>
+                "[File PPTX/ZIP — hãy upload bản DOCX hoặc PDF có text để tóm tắt nội dung trong chat.]",
+            _ => $"[Không trích xuất được nội dung từ {name}]"
+        };
     }
 
     private static string ExtractDocx(string filePath)

@@ -17,10 +17,8 @@ public static class SqlConnectionDefaults
 
     public static string Build() =>
         $"Server={Server};Database={Database};User Id={UserId};Password={Password};Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=True";
-
-    /// <summary>
     /// Chỉ chấp nhận SQL authentication với sa / 12345. Cấm Trusted Connection / Windows auth.
-    /// </summary>
+
     public static string RequireSaSqlAuthentication(string? configured)
     {
         var cs = string.IsNullOrWhiteSpace(configured) ? ConnectionString : configured.Trim();

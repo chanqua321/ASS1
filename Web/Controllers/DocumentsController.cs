@@ -13,6 +13,7 @@ using Web.ViewModels;
 
 namespace Web.Controllers;
 
+[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 public class DocumentsController : Controller
 {
     private readonly IDocumentService _documentService;
@@ -39,11 +40,14 @@ public class DocumentsController : Controller
     public async Task<IActionResult> Index(int? subjectId, CancellationToken cancellationToken)
     {
         int? teacherUserId = User.IsInRole("Teacher") ? GetCurrentUserId() : null;
+        var userId = GetCurrentUserId();
+        var isAdmin = User.IsInRole("Admin");
         var vm = new DocumentListViewModel
         {
             FilterSubjectId = subjectId,
             Subjects = await BuildSubjectSelectListAsync(subjectId, teacherUserId, cancellationToken),
-            Documents = await _documentService.GetProcessedDocumentsAsync(subjectId, teacherUserId, cancellationToken)
+            Documents = await _documentService.GetProcessedDocumentsAsync(
+                subjectId, teacherUserId, userId, isAdmin, cancellationToken)
         };
         return View(vm);
     }
@@ -94,7 +98,8 @@ public class DocumentsController : Controller
                 NewSubjectName = null,
                 NewSubjectCode = null,
                 ChapterId = model.ChapterId,
-                NewChapterTitle = model.NewChapterTitle
+                NewChapterTitle = model.NewChapterTitle,
+                UploadedByUserId = currentUserId
             };
 
             var created = await _documentService.UploadAsync(request, cancellationToken);
@@ -119,7 +124,8 @@ public class DocumentsController : Controller
         if (!await CanAccessDocumentAsync(id, cancellationToken))
             return Forbid();
 
-        var doc = await _documentService.GetDetailsAsync(id, cancellationToken);
+        var doc = await _documentService.GetDetailsAsync(
+            id, GetCurrentUserId(), User.IsInRole("Admin"), cancellationToken);
         if (doc is null)
             return NotFound();
 
@@ -225,6 +231,38 @@ public class DocumentsController : Controller
             cancellationToken);
 
         return File(download.FileStream, download.ContentType, download.FileName);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    {
+        if (!await CanAccessDocumentAsync(id, cancellationToken))
+            return Forbid();
+
+        var userId = GetCurrentUserId();
+        var isAdmin = User.IsInRole("Admin");
+
+        if (!await _documentService.CanDeleteAsync(id, userId, isAdmin, cancellationToken))
+        {
+            TempData["Error"] = "Chỉ người đã upload hoặc Admin mới được xóa tài liệu này.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var (ok, error) = await _documentService.DeleteAsync(id, userId, isAdmin, cancellationToken);
+        if (!ok)
+        {
+            TempData["Error"] = error;
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        await AuditHttpHelper.LogAsync(
+            HttpContext, _audit, AuditActions.DocumentDelete,
+            $"DocumentId={id}",
+            cancellationToken);
+        TempData["Success"] = "Đã xóa tài liệu.";
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpGet]

@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using BusinessLogic.DTOs;
+using Model.Enums;
 
 namespace BusinessLogic.Helpers;
 
@@ -14,16 +15,40 @@ public static class RagAnswerSanitizer
         "Giáo viên hãy upload thêm bản PDF hoặc DOCX cùng bài học, đợi trạng thái Indexed, rồi hỏi lại. " +
         "Bạn cũng có thể tải file gốc ở mục Tài liệu liên quan bên dưới.";
 
-    /// <summary>Lưu vào Documents.Summary khi index PPTX không trích được chữ (không gọi Ollama).</summary>
-    public const string PlaceholderDocumentSummary =
-        "PPTX: chưa đọc được nội dung slide trong hệ thống. Upload PDF/DOCX cùng bài để chat và tóm tắt chính xác.";
+    /// <summary>Lưu vào Documents.Summary khi index không trích được chữ (không gọi Ollama).</summary>
+    public static string GetNoExtractableTextSummary(DocumentFileType fileType, string fileName) =>
+        fileType switch
+        {
+            DocumentFileType.Pdf =>
+                "PDF: không trích xuất được chữ trong file. Thường do slide xuất PDF dạng ảnh (không có lớp text). " +
+                "Hãy export lại PDF có chọn text, hoặc upload DOCX, rồi Index lại.",
+            DocumentFileType.Pptx =>
+                "PPTX: chưa đọc được nội dung slide trong hệ thống. Upload PDF/DOCX cùng bài để chat và tóm tắt chính xác.",
+            DocumentFileType.Docx =>
+                "DOCX: không đọc được nội dung. Kiểm tra file có bị khóa/mã hóa hoặc thử lưu lại rồi Index lại.",
+            _ => GetNoExtractableTextSummary(InferFileTypeFromName(fileName), fileName)
+        };
+
+    public static DocumentFileType InferFileTypeFromName(string fileName)
+    {
+        var ext = Path.GetExtension(fileName).ToLowerInvariant();
+        return ext switch
+        {
+            ".pdf" => DocumentFileType.Pdf,
+            ".docx" => DocumentFileType.Docx,
+            ".pptx" or ".ppt" => DocumentFileType.Pptx,
+            _ => DocumentFileType.Unknown
+        };
+    }
 
     private static readonly string[] PlaceholderMarkers =
     [
         "[File PPTX",
+        "[PDF:",
         "[Không trích xuất được",
         "hãy upload bản DOCX",
-        "dùng PDF hoặc DOCX để chat"
+        "dùng PDF hoặc DOCX để chat",
+        "không trích xuất được chữ"
     ];
 
     private static readonly Regex UploadHallucinationLine = new(
@@ -96,9 +121,11 @@ public static class RagAnswerSanitizer
     /// </summary>
     public static string BuildPlaceholderAwareMessage(IReadOnlyList<RetrievedChunkDto> chunks)
     {
-        var fileName = chunks.FirstOrDefault()?.FileName ?? "tài liệu";
+        var first = chunks.FirstOrDefault();
+        var fileName = first?.FileName ?? "tài liệu";
+        var fileType = InferFileTypeFromName(fileName);
         var sb = new StringBuilder();
-        sb.AppendLine(PlaceholderOnlyMessage);
+        sb.AppendLine(GetNoExtractableTextSummary(fileType, fileName));
         sb.AppendLine();
         sb.AppendLine($"Tài liệu liên quan: {fileName}.");
         return sb.ToString().Trim();

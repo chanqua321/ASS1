@@ -65,10 +65,10 @@ public class TeacherAssignmentService : ITeacherAssignmentService
     {
         email = (email ?? string.Empty).Trim();
         var existing = await _users.FindByEmailIgnoreCaseAsync(email, cancellationToken);
-        var isExistingTeacher = existing?.Role == "Teacher";
         return new AssignTeacherFormValidationDto
         {
-            RequiresPassword = !isExistingTeacher
+            RequiresPassword = existing is null,
+            IsStudentEmail = string.Equals(existing?.Role, "Student", StringComparison.OrdinalIgnoreCase)
         };
     }
 
@@ -88,7 +88,6 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             return AssignTeacherResultDto.Fail($"Môn {subject.Code} đã có giáo viên.");
 
         var existingBefore = await _users.FindByEmailIgnoreCaseAsync(email, cancellationToken);
-        var wasStudent = existingBefore?.Role == "Student";
         var wasNew = existingBefore is null;
 
         var (ok, err, user) = await _auth.PrepareTeacherUserAsync(email, password, cancellationToken);
@@ -101,7 +100,6 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         return AssignTeacherResultDto.Ok(
             user.Email,
             subject.Code,
-            createdTeacher: wasNew,
-            promotedFromStudent: wasStudent);
+            createdTeacher: wasNew);
     }
 }
