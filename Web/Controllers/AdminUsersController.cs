@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Web.Controllers;
 
-/// <summary>Chuyển hướng URL cũ sang AdminTeachers.</summary>
 [Authorize(Roles = "Admin")]
 public class AdminUsersController : Controller
 {

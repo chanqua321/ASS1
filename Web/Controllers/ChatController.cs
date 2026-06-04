@@ -11,11 +11,6 @@ using Web.ViewModels;
 
 namespace Web.Controllers;
 
-/// <summary>
-/// Lớp WEB — WF2 Chat RAG.
-/// POST /Chat/Send nhận JSON (DTO) → IChatService (BusinessLogic) → trả JSON.
-/// GET trả Razor View + ViewModel.
-/// </summary>
 public class ChatController : Controller
 {
     private readonly IChatService _chatService;
@@ -41,7 +36,6 @@ public class ChatController : Controller
         _ragOptions = ragOptions.Value;
     }
 
-    // UI: mở trang Chat (GET /Chat) — hiển thị sessions + subjects + AI status
     [Authorize]
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
@@ -57,7 +51,6 @@ public class ChatController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    // UI: bấm "Phiên mới" (submit form) → tạo session → redirect sang /Chat/Session/{id}
     [Authorize]
     public async Task<IActionResult> Create(int? subjectId, CancellationToken cancellationToken)
     {
@@ -65,7 +58,6 @@ public class ChatController : Controller
         return RedirectToAction(nameof(Session), new { id });
     }
 
-    // UI: bấm vào 1 phiên chat trong danh sách (GET /Chat/Session/{id})
     [Authorize]
     public async Task<IActionResult> Session(Guid id, CancellationToken cancellationToken)
     {
@@ -89,7 +81,6 @@ public class ChatController : Controller
     }
 
     [HttpPost]
-    // UI: trang Session — bấm "Đăng ký" (JS fetch POST JSON) → /Chat/Enroll
     [Authorize]
     public async Task<IActionResult> Enroll([FromBody] SubjectEnrollmentRequest request, CancellationToken cancellationToken)
     {
@@ -101,7 +92,6 @@ public class ChatController : Controller
     }
 
     [HttpPost]
-    // UI: trang Session — bấm "Gửi" (JS fetch POST JSON) → /Chat/Send
     [Authorize]
     public async Task<IActionResult> Send([FromBody] ChatSendRequest request, CancellationToken cancellationToken)
     {
@@ -121,7 +111,6 @@ public class ChatController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    // UI: bấm icon thùng rác "Xóa phiên" trong danh sách (POST /Chat/Delete/{id})
     [Authorize]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {

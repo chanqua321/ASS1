@@ -231,7 +231,6 @@
                 const name = document.getElementById('enrollName').value.trim();
                 const email = document.getElementById('enrollEmail').value.trim();
                 try {
-                    // UI: bấm nút "Đăng ký" → POST /Chat/Enroll (JSON) → ChatController.Enroll
                     const res = await fetch('@Url.Action("Enroll")', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -276,7 +275,6 @@
             setTyping(true);
 
             try {
-                // UI: bấm "Gửi" (submit form) → POST /Chat/Send (JSON) → ChatController.Send
                 const res = await fetch('@Url.Action("Send")', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

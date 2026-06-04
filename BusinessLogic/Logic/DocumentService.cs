@@ -336,7 +336,7 @@ public class DocumentService : IDocumentService
     {
         if (string.IsNullOrWhiteSpace(summary))
             return null;
-        const int maxLen = 160;
+        const int maxLen = 100;
         var trimmed = summary.Trim().Replace('\r', ' ').Replace('\n', ' ');
         return trimmed.Length <= maxLen ? trimmed : trimmed[..maxLen] + "…";
     }

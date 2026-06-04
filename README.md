@@ -32,7 +32,7 @@
 
 - **WF1:** Teacher upload tài liệu (PDF/DOCX/PPT), trích xuất text, chia chunk, tạo embedding, lập chỉ mục để tra cứu.
 - **WF2:** Student/Teacher/Admin chat hỏi–đáp theo tài liệu đã index (RAG), có thể bật trích dẫn nguồn.
-- **Quản trị:** Admin tạo môn/chương, gán giáo viên (mỗi môn một teacher), xem audit & dashboard.
+- **Quản trị:** Admin tạo môn/chương, gán giáo viên (mỗi môn một teacher; một teacher có thể nhiều môn), xem audit & dashboard.
 - **Mở rộng:** Tóm tắt AI trên document, sinh quiz, export quiz.
 
 **Stack:**
@@ -287,9 +287,14 @@ options.AddPolicy("TeacherOnly", policy => policy.RequireRole("Teacher"));
 
 **Bảo mật:** Ẩn UI **không thay** kiểm tra server. Mật khẩu: PBKDF2 (`PasswordHashHelper`).
 
-### 6.5 Quy tắc “một môn — một teacher”
+### 6.5 Quy tắc gán giáo viên ↔ môn học
 
-`Subject.TeacherUserId` — Admin gán qua `AdminTeachersController`. Môn đã có teacher thì không gán thêm.
+`Subject.TeacherUserId` — Admin gán qua `AdminTeachersController`.
+
+| Chiều | Quy tắc |
+|-------|---------|
+| **Môn → GV** | Mỗi môn **tối đa một** giáo viên; môn đã có GV thì không gán thêm. |
+| **GV → Môn** | Một giáo viên có thể phụ trách **nhiều môn** (gán lại cùng email để thêm môn). |
 
 ---
 

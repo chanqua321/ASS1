@@ -1,0 +1,55 @@
+---
+description: Kiến trúc 3 tầng MVC — Controller → Service → Repository (bắt buộc)
+alwaysApply: true
+---
+
+# Luồng tầng EduAI (Assigment1)
+
+Luồng gọi **chỉ một chiều**:
+
+**Web/Controller → BusinessLogic/Service → Model/Repository (+ IUnitOfWork)**
+
+## Được phép / Cấm
+
+| Tầng | Được | Cấm |
+|------|------|-----|
+| **Web** (`Web/Controllers`) | Inject `I*Service`, map ViewModel ↔ DTO | `AppDbContext`, `I*Repository`, `Model.Entities.*` |
+| **BusinessLogic** (`Logic/`) | `I*Repository`, `IUnitOfWork`, trả **DTO** | `AppDbContext`, query EF trực tiếp |
+| **Model** (`Repository/`) | `AppDbContext`, entity, migration | Gọi Service/Controller |
+
+**Ngoại lệ duy nhất:** `Web/Program.cs` (composition root — DI, migrate startup).
+
+## Ví dụ
+
+```csharp
+// ❌ Controller chọc thẳng DB
+public AdminTeachersController(AppDbContext db) { ... }
+await _db.Subjects.FirstOrDefaultAsync(...);
+
+// ✅ Controller → Service → Repository
+public AdminTeachersController(ITeacherAssignmentService teachers) { ... }
+var page = await _teachers.GetAdminPageAsync(subjectId, ct);
+```
+
+```csharp
+// ❌ Service bypass Repository
+public class FooService(AppDbContext db) {
+    await db.Documents.ToListAsync();
+}
+
+// ✅ Service qua Repository + UnitOfWork
+public class FooService(IDocumentRepository docs, IUnitOfWork uow) {
+    await docs.GetAllAsync(ct);
+    await uow.SaveChangesAsync(ct);
+}
+```
+
+## Khi thêm tính năng mới
+
+1. Entity + migration → **Model**
+2. `I*Repository` + implementation → **Model**
+3. DTO + `I*Service` + `*Service` → **BusinessLogic**
+4. Đăng ký DI trong `Program.cs`
+5. Controller gọi service, view dùng ViewModel
+
+Không tạo shortcut “tạm” qua tầng — refactor ngay nếu phát hiện vi phạm.

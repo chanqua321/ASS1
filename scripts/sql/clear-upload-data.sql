@@ -1,0 +1,7 @@
+DELETE FROM MessageCitations;
+DELETE FROM ChatMessages;
+DELETE FROM ChatSessions;
+DELETE FROM DocumentEmbeddings;
+DELETE FROM DocumentChunks;
+DELETE FROM DocumentQuizzes;
+DELETE FROM Documents;

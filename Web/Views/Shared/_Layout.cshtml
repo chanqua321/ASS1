@@ -106,7 +106,7 @@
     </header>
 
     <main class="app-main">
-        <div class="container app-container">
+        <div class="container app-container@(ViewData["WideLayout"] as bool? == true ? " app-container-wide" : "")">
             @if (TempData["Success"] is string successMsg)
             {
                 <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">

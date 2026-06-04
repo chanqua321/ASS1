@@ -2,6 +2,20 @@
 
 Tài liệu này mô tả **vai trò nghiệp vụ (business roles)** trong hệ thống EduAI theo đúng code hiện tại (ASP.NET Core MVC + Cookie Auth + Role-based Authorization).
 
+## Kiến trúc tầng (bắt buộc)
+
+Luồng gọi **chỉ một chiều**:
+
+**Controller (Web) → Service (BusinessLogic) → Repository / UnitOfWork (Model)**
+
+| Tầng | Được phép | Không được |
+|------|-----------|------------|
+| **Web / Controller** | Gọi `I*Service`, map ViewModel ↔ DTO | Inject `AppDbContext`, `I*Repository`, entity Model |
+| **BusinessLogic / Service** | Gọi `I*Repository`, `IUnitOfWork`, trả DTO | Gọi thẳng `AppDbContext` |
+| **Model** | `Repository` dùng `AppDbContext`, entity, migration | Gọi ngược Service / Controller |
+
+`Program.cs` (composition root) là ngoại lệ: đăng ký DI, migrate DB lúc startup.
+
 ## 1) Các vai trò
 
 Hệ thống có 3 role:
@@ -12,7 +26,7 @@ Hệ thống có 3 role:
   - Gán Teacher cho môn học (mỗi môn chỉ 1 teacher)
 - **Teacher**
   - Upload tài liệu và lập chỉ mục (index) để phục vụ Chat
-  - (Mục tiêu) chỉ thao tác trên môn mình phụ trách
+  - Có thể phụ trách **nhiều môn**; chỉ thao tác trên môn mình được Admin gán
 - **Student**
   - Chỉ được xem / tải tài liệu và sử dụng Chat
   - **Không được thấy** và **không truy cập được** các màn Upload/Reindex
@@ -102,11 +116,11 @@ Controller: `Web/Controllers/AdminUsersController.cs`
 - `GET/POST /AdminUsers/CreateTeacher`
   - Admin tạo 1 tài khoản mới (ban đầu register như student) → nâng role thành Teacher
   - Admin gán teacher đó vào 1 môn
-  - Rule enforced: **mỗi môn chỉ có 1 teacher**
+  - Rule enforced: **mỗi môn chỉ có 1 teacher**; **một teacher có thể phụ trách nhiều môn** (gán lại cùng email)
 
 Quyền: `[Authorize(Roles="Admin")]` (chỉ Admin)
 
-## 6) Quy tắc “mỗi môn chỉ 1 teacher”
+## 6) Quy tắc gán giáo viên ↔ môn học
 
 Entity: `Model/Entities/Subject.cs`
 
@@ -114,9 +128,15 @@ Entity: `Model/Entities/Subject.cs`
   - `TeacherUserId`
   - `TeacherUser`
 
-Ý nghĩa nghiệp vụ:
-- Một môn học chỉ có **một** teacher chịu trách nhiệm cập nhật tài liệu của môn đó.
-- Admin là người gán teacher cho môn.
+Quy tắc (quan hệ **1–N**):
+
+| Chiều | Quy tắc |
+|-------|---------|
+| **Môn → Giáo viên** | Mỗi môn có **tối đa một** giáo viên phụ trách (`TeacherUserId`). Môn đã có GV thì không gán thêm. |
+| **Giáo viên → Môn** | Một giáo viên có thể phụ trách **nhiều môn** (Admin gán từng môn; GV đã có thì nhập lại email để thêm môn). |
+
+- Admin là người gán teacher cho từng môn (`AdminTeachersController`).
+- Teacher chỉ upload/reindex trên môn có `TeacherUserId` trùng tài khoản của mình.
 
 ## 7) UI/UX theo role (ẩn/hiện đúng vai trò)
 

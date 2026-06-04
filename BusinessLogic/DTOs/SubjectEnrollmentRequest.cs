@@ -1,5 +1,9 @@
 namespace BusinessLogic.DTOs;
 
+/// <summary>
+/// Request — POST /Chat/Enroll (application/json).
+/// Body: subjectId, fullName, email.
+/// </summary>
 public class SubjectEnrollmentRequest
 {
     public int SubjectId { get; set; }

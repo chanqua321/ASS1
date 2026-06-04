@@ -13,9 +13,6 @@ using Web.ViewModels;
 
 namespace Web.Controllers;
 
-/// Lớp WEB — WF1 Quản lý tài liệu.
-/// Nhận HTTP → map ViewModel ↔ DTO → gọi IBusinessLogic → trả View/JSON/File.
-/// Không gọi DbContext, không dùng Entity.
 public class DocumentsController : Controller
 {
     private readonly IDocumentService _documentService;
@@ -38,7 +35,6 @@ public class DocumentsController : Controller
         _ragOptions = ragOptions.Value;
     }
 
-    // UI: trang "Kho tài liệu" + form lọc (GET /Documents?subjectId=...)
     [Authorize]
     public async Task<IActionResult> Index(int? subjectId, CancellationToken cancellationToken)
     {
@@ -53,7 +49,6 @@ public class DocumentsController : Controller
     }
 
     [HttpGet]
-    // UI: bấm nút/link "Upload tài liệu" (GET /Documents/Upload)
     [Authorize(Policy = "TeacherOnly")]
     public async Task<IActionResult> Upload(CancellationToken cancellationToken)
     {
@@ -62,7 +57,6 @@ public class DocumentsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    // UI: bấm "Tải lên & xử lý" (submit form multipart/form-data)
     [Authorize(Policy = "TeacherOnly")]
     public async Task<IActionResult> Upload(DocumentUploadViewModel model, CancellationToken cancellationToken)
     {
@@ -119,7 +113,6 @@ public class DocumentsController : Controller
         }
     }
 
-    // UI: bấm "Chi tiết" từ danh sách (GET /Documents/Details/{id})
     [Authorize]
     public async Task<IActionResult> Details(int id, CancellationToken cancellationToken)
     {
@@ -198,7 +191,6 @@ public class DocumentsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    // UI: bấm "Index lại" trong trang chi tiết (POST /Documents/Reindex/{id})
     [Authorize(Policy = "TeacherOnly")]
     public async Task<IActionResult> Reindex(int id, CancellationToken cancellationToken)
     {
@@ -217,7 +209,6 @@ public class DocumentsController : Controller
         return RedirectToAction(nameof(Details), new { id });
     }
 
-    // UI: bấm "Tải xuống" (GET /Documents/Download/{id}) hoặc từ Chat download links
     [Authorize]
     public async Task<IActionResult> Download(int id, CancellationToken cancellationToken)
     {
@@ -237,7 +228,6 @@ public class DocumentsController : Controller
     }
 
     [HttpGet]
-    // UI: trang Upload — đổi select "Môn học" → fetch chapters (GET /Documents/ChaptersBySubject?subjectId=...)
     [Authorize(Policy = "TeacherOnly")]
     public async Task<IActionResult> ChaptersBySubject(int subjectId, CancellationToken cancellationToken)
     {

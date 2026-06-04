@@ -226,6 +226,239 @@ header, main, footer { position: relative; z-index: 1; }
 }
 
 .app-container { max-width: 1160px; }
+.app-container-wide { max-width: 1320px; }
+
+/* ── Documents table (fixed columns, no horizontal scroll) ─────── */
+.doc-table-wrap {
+  overflow: hidden;
+}
+
+.doc-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.doc-col-file    { width: 18%; }
+.doc-col-subject { width: 9%;  }
+.doc-col-chapter { width: 13%; }
+.doc-col-chunk   { width: 4%;  }
+.doc-col-summary { width: 28%; }
+.doc-col-status  { width: 10%; }
+.doc-col-date    { width: 10%; }
+.doc-col-actions { width: 3.25rem; }
+
+.doc-actions-header {
+  overflow: visible !important;
+  white-space: nowrap;
+  padding-left: 0.35rem !important;
+  padding-right: 0.65rem !important;
+}
+
+.doc-table thead th,
+.doc-table tbody td {
+  padding: 0.7rem 0.55rem;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.doc-table thead th {
+  white-space: nowrap;
+}
+
+.doc-table .min-w-0 { min-width: 0; }
+
+.cell-ellipsis {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.cell-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  line-height: 1.4;
+  font-size: 0.78rem;
+  color: var(--text-2);
+  max-width: 100%;
+}
+
+.doc-file-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.doc-file-icon {
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  color: var(--c-indigo-light);
+  margin-top: 0.1rem;
+}
+
+.doc-file-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.doc-file-name {
+  font-weight: 600;
+  font-size: 0.84rem;
+  color: var(--text);
+}
+
+.doc-type-pill {
+  display: inline-block;
+  margin-top: 0.2rem;
+  padding: 0.08rem 0.45rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.doc-subject {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--c-indigo-light);
+}
+
+.doc-chapter {
+  font-size: 0.78rem;
+}
+
+.doc-chunk-badge {
+  font-size: 0.68rem;
+  min-width: 1.5rem;
+}
+
+.doc-summary-cell {
+  max-width: 0;
+}
+
+.doc-summary-empty {
+  font-size: 0.78rem;
+  color: var(--text-3);
+  font-style: italic;
+}
+
+.doc-status-badge {
+  font-size: 0.65rem;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.doc-date {
+  font-size: 0.72rem;
+  color: var(--text-2);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-actions {
+  display: inline-flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+}
+
+.btn-icon {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.btn-icon i { font-size: 0.95rem; }
+
+@media (max-width: 991.98px) {
+  .doc-col-file    { width: 22%; }
+  .doc-col-summary { width: 24%; }
+  .doc-col-chapter { width: 11%; }
+}
+
+@media (max-width: 767.98px) {
+  .doc-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .doc-table {
+    min-width: 720px;
+  }
+}
+
+/* Teacher dashboard — recent documents table */
+.dash-table-wrap {
+  overflow: hidden;
+}
+
+.dash-recent-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.dash-col-file    { width: 20%; }
+.dash-col-subject { width: 12%; }
+.dash-col-chapter { width: 14%; }
+.dash-col-date    { width: 11%; }
+.dash-col-summary { width: 37%; }
+.dash-col-actions { width: 3.25rem; }
+
+.dash-recent-table thead th,
+.dash-recent-table tbody td {
+  padding: 0.75rem 0.65rem;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.dash-recent-table .doc-summary-cell {
+  max-width: 0;
+}
+
+@media (max-width: 767.98px) {
+  .dash-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .dash-recent-table {
+    min-width: 680px;
+  }
+}
+
+.teacher-rule-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md, 0.5rem);
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.18);
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.925rem;
+  line-height: 1.5;
+}
+
+.teacher-rule-banner strong {
+  color: var(--c-text, #1e293b);
+}
+
 
 /* ── Typography helpers ─────────────────────────────────────────── */
 .gradient-text {

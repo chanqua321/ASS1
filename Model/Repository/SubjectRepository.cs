@@ -44,4 +44,14 @@ public class SubjectRepository(AppDbContext db) : ISubjectRepository
 
     public Task<bool> ChapterBelongsToSubjectAsync(int chapterId, int subjectId, CancellationToken cancellationToken = default) =>
         db.Chapters.AnyAsync(c => c.Id == chapterId && c.SubjectId == subjectId, cancellationToken);
+
+    public Task<List<Subject>> GetAllWithTeacherAsync(CancellationToken cancellationToken = default) =>
+        db.Subjects
+            .Include(s => s.TeacherUser)
+            .OrderBy(s => s.Code)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+    public Task<Subject?> GetByIdForUpdateAsync(int id, CancellationToken cancellationToken = default) =>
+        db.Subjects.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 }

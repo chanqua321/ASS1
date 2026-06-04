@@ -4,10 +4,6 @@ using Microsoft.Extensions.Configuration;
 
 namespace Model.Data;
 
-/// <summary>
-/// Cho phép chạy từ thư mục Model: <c>dotnet ef database update</c> (không cần --startup-project Web).
-/// Đọc connection string từ Web/appsettings.json.
-/// </summary>
 public sealed class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext(string[] args)
@@ -22,13 +18,13 @@ public sealed class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbConte
 
     private static string ResolveConnectionString()
     {
-        foreach (var webDir in GetWebProjectDirectories())
+        foreach (var basePath in GetConfigurationBasePaths())
         {
-            if (!Directory.Exists(webDir))
+            if (!Directory.Exists(basePath))
                 continue;
 
             var config = new ConfigurationBuilder()
-                .SetBasePath(webDir)
+                .SetBasePath(basePath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
                 .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: false)
                 .AddEnvironmentVariables()
@@ -41,14 +37,16 @@ public sealed class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbConte
 
         throw new InvalidOperationException(
             "Không tìm thấy ConnectionStrings:DefaultConnection. " +
-            "Chạy lệnh trong thư mục Model hoặc đảm bảo Web/appsettings.json tồn tại.");
+            "Đặt connection string trong Model/appsettings.json hoặc Web/appsettings.json.");
     }
 
-    private static IEnumerable<string> GetWebProjectDirectories()
+    private static IEnumerable<string> GetConfigurationBasePaths()
     {
         var cwd = Directory.GetCurrentDirectory();
+        yield return cwd;
+        yield return Path.GetFullPath(Path.Combine(cwd, "Model"));
+        yield return Path.GetFullPath(Path.Combine(cwd, "..", "Model"));
         yield return Path.GetFullPath(Path.Combine(cwd, "Web"));
         yield return Path.GetFullPath(Path.Combine(cwd, "..", "Web"));
-        yield return Path.GetFullPath(Path.Combine(cwd, "..", "..", "Web"));
     }
 }

@@ -18,7 +18,6 @@
                 Thông tin tài liệu
             </div>
             <div class="card-body">
-                @* UI: submit form "Tải lên & xử lý" → POST /Documents/Upload → DocumentsController.Upload (HttpPost) *@
                 <form asp-action="Upload" method="post" enctype="multipart/form-data">
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 mb-4"></div>
 
@@ -183,7 +182,6 @@
             const subjectId = this.value;
             chapterSelect.innerHTML = '<option value="">— Không chọn chương —</option>';
             if (!subjectId) return;
-            // UI: đổi môn học → gọi Controller lấy danh sách chapters (GET /Documents/ChaptersBySubject?subjectId=...)
             const response = await fetch(`/Documents/ChaptersBySubject?subjectId=${subjectId}`);
             const chapters = await response.json();
             chapters.forEach(c => {

@@ -60,6 +60,7 @@ builder.Services.AddHttpClient<IAiHealthService, AiHealthService>(client =>
     client.Timeout = TimeSpan.FromSeconds(5));
 
 builder.Services.AddScoped<ISubjectService, SubjectService>();
+builder.Services.AddScoped<ITeacherAssignmentService, TeacherAssignmentService>();
 builder.Services.AddScoped<IChunkingService, ChunkingService>();
 builder.Services.AddScoped<IEmbeddingService, MockEmbeddingService>();
 builder.Services.AddScoped<IDocumentTextExtractor, DocumentTextExtractor>();

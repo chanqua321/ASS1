@@ -7,7 +7,7 @@ public class Subject
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
 
-    // Mỗi môn chỉ có 1 teacher phụ trách tài liệu (do Admin gán).
+    // Quan hệ gán môn: 1 môn ↔ tối đa 1 teacher; 1 teacher ↔ nhiều môn (Admin gán qua TeacherUserId).
     public int? TeacherUserId { get; set; }
     public AppUser? TeacherUser { get; set; }
 
