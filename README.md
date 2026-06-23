@@ -50,7 +50,7 @@
 
 - `Web` — presentation
 - `BusinessLogic` — nghiệp vụ + DTO + options
-- `Model` — EF entities, repositories, migrations
+- `Model` — EF entities, repositories, migrations.
 
 ---
 
