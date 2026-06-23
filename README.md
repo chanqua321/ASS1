@@ -35,7 +35,7 @@
 - **Quản trị:** Admin tạo môn/chương, gán giáo viên (mỗi môn một teacher; một teacher có thể nhiều môn), xem audit & dashboard.
 - **Mở rộng:** Tóm tắt AI trên document, sinh quiz, export quiz.
 
-**Stack:**
+**Tech Stack:**
 
 | Thành phần | Công nghệ |
 |------------|-----------|
